@@ -3,66 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Menu Ultimate Pro</title>
+    <title>Smart Menu Pro</title>
     <link id="font-link" rel="stylesheet" href="">
     <style>
         :root {
-            --p: #000; --bg: #fff; --card-bg: #fff;
+            --p: #000; --bg: #f8f9fa; --card-bg: #fff;
             --m-h: 200px; --m-fs: 2rem; --m-c: #fff; --m-w: 900; --m-align: center;
             --sub-s: 0.9rem; --sub-c: #777; --sub-w: 500;
             --l-s: 1.8rem; --l-c: #000;
         }
 
-        body { margin: 0; font-family: sans-serif; background-color: var(--bg); min-height: 100vh; transition: 0.3s; }
-        #bg-layer { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; background-attachment: fixed; }
+        body { margin: 0; font-family: sans-serif; background-color: var(--bg); min-height: 100vh; overflow-x: hidden; }
+        #bg-layer { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; background-attachment: fixed; transition: 0.5s; }
         
-        #loader { position:fixed; inset:0; background:#fff; display:flex; align-items:center; justify-content:center; z-index:1000; }
+        #loader { position:fixed; inset:0; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--p); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         header { padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; transition: 0.3s; }
-        .header-bg { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header-bg { background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); box-shadow: 0 2px 15px rgba(0,0,0,0.1); }
 
-        .logo-text { font-size: var(--l-s); color: var(--l-c); font-weight: 900; text-transform: uppercase; margin: 0; cursor: pointer; }
-        .logo-img { max-height: 80px; margin: 0 auto; cursor: pointer; display: block; }
+        .logo-text { font-size: var(--l-s); color: var(--l-c); font-weight: 900; text-transform: uppercase; margin: 0; cursor: pointer; letter-spacing: -1px; }
+        .logo-img { max-height: 70px; margin: 0 auto; cursor: pointer; display: block; }
         #subtitle { font-size: var(--sub-s); color: var(--sub-c); font-weight: var(--sub-w); margin-top: 5px; }
 
         .container { padding: 15px; max-width: 800px; margin: auto; }
 
         /* FILTRI */
-        .filter-bar { display: none; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 20px; scrollbar-width: none; }
-        .filter-chip { padding: 8px 15px; background: #eee; border-radius: 20px; border: none; font-weight: 600; font-size: 0.8rem; cursor: pointer; white-space: nowrap; transition: 0.2s; }
-        .filter-chip.active { background: #ffcc00; color: #000; transform: scale(1.05); }
+        .filter-bar { display: none; gap: 8px; overflow-x: auto; padding: 10px 0; margin-bottom: 20px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+        .filter-chip { padding: 8px 18px; background: #eee; border-radius: 25px; border: none; font-weight: 700; font-size: 0.75rem; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .filter-chip.active { background: #ffcc00; color: #000; box-shadow: 0 4px 10px rgba(255,204,0,0.3); }
 
-        /* MACRO CLIP */
+        /* MACRO */
         .macro-list { display: flex; flex-direction: column; gap: 15px; }
         .macro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .macro-card { 
             height: var(--m-h); border-radius: 20px; overflow: hidden; position: relative;
             display: flex; align-items: center; justify-content: var(--m-align);
-            cursor: pointer; transition: 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            cursor: pointer; transition: 0.3s; box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
+        .macro-card:active { transform: scale(0.98); }
         .macro-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-        .macro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); z-index: 2; }
+        .macro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 2; }
         .macro-txt { position: relative; z-index: 3; color: var(--m-c); font-size: var(--m-fs); font-weight: var(--m-w); text-transform: uppercase; padding: 0 20px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
 
         /* CATEGORIE */
-        .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-        .cat-card { background: var(--card-bg); border-radius: 15px; padding: 10px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; }
-        .cat-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; margin-bottom: 8px; }
-        .cat-card b { font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
+        .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+        .cat-card { background: var(--card-bg); border-radius: 18px; padding: 10px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.06); cursor: pointer; }
+        .cat-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; margin-bottom: 8px; }
+        .cat-card b { font-weight: 800; text-transform: uppercase; font-size: 0.9rem; color: #222; }
 
         /* PIATTI */
-        .dish-card { background: var(--card-bg); border-radius: 15px; padding: 12px; display: flex; align-items: center; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .dish-img { width: 75px; height: 75px; object-fit: cover; border-radius: 10px; margin-right: 12px; }
-        .dish-name { font-weight: 700; font-size: 1.05rem; margin: 0; }
-        .dish-desc { font-size: 0.85rem; color: #666; margin: 3px 0; }
-        .dish-price { font-weight: 800; color: var(--p); margin-top: 5px; }
+        .dish-card { background: var(--card-bg); border-radius: 18px; padding: 15px; display: flex; align-items: center; margin-bottom: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.03); }
+        .dish-img { width: 80px; height: 80px; object-fit: cover; border-radius: 12px; margin-right: 15px; }
+        .dish-name { font-weight: 800; font-size: 1.1rem; margin: 0; color: #111; }
+        .dish-desc { font-size: 0.85rem; color: #666; margin: 4px 0; line-height: 1.3; }
+        .dish-price { font-weight: 900; color: var(--p); margin-top: 6px; font-size: 1.1rem; }
 
-        .btn-back { display: inline-flex; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.06); border-radius: 30px; font-weight: 700; margin-bottom: 15px; cursor: pointer; }
+        .btn-back { display: inline-flex; align-items: center; padding: 10px 22px; background: rgba(0,0,0,0.06); border-radius: 30px; font-weight: 800; margin-bottom: 20px; cursor: pointer; font-size: 0.9rem; }
 
-        .fade { animation: fadeIn 0.4s ease forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -70,135 +71,133 @@
 <div id="loader"><div class="spinner"></div></div>
 <div id="bg-layer"></div>
 
-<header id="h">
-    <div id="logo-container"></div>
+<header id="header">
+    <div id="logo-box"></div>
     <div id="subtitle"></div>
 </header>
 
 <div class="container">
-    <div id="filters" class="filter-bar">
-        <button class="filter-chip" onclick="toggleF('Senza_Glutine', this)">🚫 Senza Glutine</button>
-        <button class="filter-chip" onclick="toggleF('Vegano', this)">🌿 Vegano</button>
-        <button class="filter-chip" onclick="toggleF('Analcolico', this)">🥤 Analcolico</button>
+    <div id="f-bar" class="filter-bar">
+        <button class="filter-chip" onclick="tk('Senza_Glutine', this)">🚫 Senza Glutine</button>
+        <button class="filter-chip" onclick="tk('Vegano', this)">🌿 Vegano</button>
+        <button class="filter-chip" onclick="tk('Analcolico', this)">🥤 Analcolico</button>
     </div>
-    <div id="main-view"></div>
+    <div id="view"></div>
 </div>
 
 <script>
     const SID = new URLSearchParams(window.location.search).get('id');
-    let menu = [], config = {}, state = { m: null, c: null, f: { Senza_Glutine: false, Vegano: false, Analcolico: false } };
+    let menu = [], conf = {}, state = { m: null, c: null, f: { Senza_Glutine: false, Vegano: false, Analcolico: false } };
 
-    // Normalizza le chiavi (es: "Senza Glutine" diventa "Senza_Glutine")
-    const normalize = (key) => key.trim().replace(/\s+/g, '_');
+    const norm = (k) => k ? k.trim().replace(/\s+/g, '_') : '';
 
     async function init() {
-        if(!SID) return;
-        const cb = `&_cb=${Date.now()}`;
+        if(!SID) { alert("Manca l'ID del foglio Google nell'URL!"); return; }
         try {
+            const cb = `&_t=${Date.now()}`;
             const [rC, rM] = await Promise.all([
                 fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Config${cb}`).then(r => r.text()),
                 fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Menu${cb}`).then(r => r.text())
             ]);
             
-            config = parseCSV(rC).reduce((a, r) => ({...a, [normalize(r.Parametro)]: r.Valore}), {});
-            menu = parseCSV(rM).map(row => {
-                let nRow = {};
-                Object.keys(row).forEach(k => nRow[normalize(k)] = row[k]);
-                return nRow;
+            conf = parseCSV(rC).reduce((a, r) => ({...a, [norm(r.Parametro)]: r.Valore}), {});
+            menu = parseCSV(rM).map(r => {
+                let nR = {};
+                Object.keys(r).forEach(k => nR[norm(k)] = r[k]);
+                return nR;
             }).filter(i => i.Attivo === 'SI');
 
-            applyStyles();
-            render();
-            document.getElementById('loader').remove();
-        } catch (e) { console.error(e); }
+            apply();
+            draw();
+            document.getElementById('loader').style.display = 'none';
+        } catch (e) { console.error("Errore inizializzazione:", e); }
     }
 
-    function parseCSV(s) {
-        const arr = []; let col = '', inQ = false, row = [];
-        for (let i = 0; i < s.length; i++) {
-            let c = s[i], n = s[i+1];
-            if (c === '"') { if(inQ && n === '"') { col += '"'; i++; } else { inQ = !inQ; } }
-            else if (c === ',' && !inQ) { row.push(col.trim()); col = ''; }
-            else if (char === '\n' && !inQ) {} // Handled by loop
-            if ( (c === '\n' || i === s.length -1) && !inQ) {
-                if(c !== '\n') col += c;
-                row.push(col.trim()); arr.push(row); row = []; col = '';
-            } else if (!(c === ',' && !inQ)) { col += c; }
+    function parseCSV(text) {
+        const lines = []; let field = '', inQ = false, line = [];
+        for (let i = 0; i < text.length; i++) {
+            const c = text[i], n = text[i+1];
+            if (c === '"' && inQ && n === '"') { field += '"'; i++; }
+            else if (c === '"') { inQ = !inQ; }
+            else if (c === ',' && !inQ) { line.push(field.trim()); field = ''; }
+            else if ((c === '\r' || c === '\n') && !inQ) {
+                if (field || line.length > 0) { line.push(field.trim()); lines.push(line); }
+                line = []; field = ''; if (c === '\r' && n === '\n') i++;
+            } else { field += c; }
         }
-        const h = arr[0];
-        return arr.slice(1).filter(r => r.length > 1).map(r => h.reduce((o, key, i) => ({...o, [key]: r[i]}), {}));
+        if (field || line.length > 0) { line.push(field.trim()); lines.push(line); }
+        const h = lines[0];
+        return lines.slice(1).map(r => h.reduce((o, k, i) => ({...o, [k]: r[i]}), {}));
     }
 
-    function applyStyles() {
+    function apply() {
         const s = document.documentElement.style;
         const bg = document.getElementById('bg-layer');
-        const header = document.getElementById('h');
-
-        // BACKGROUND LOGIC
-        if(config.App_Bg_Type === 'IMAGE' && config.App_Bg_Image) {
-            bg.style.backgroundImage = `url('${config.App_Bg_Image}')`;
+        
+        // SFONDO
+        if(conf.App_Bg_Type === 'IMAGE' && conf.App_Bg_Image) {
+            bg.style.backgroundImage = `url('${conf.App_Bg_Image}')`;
             s.setProperty('--bg', 'transparent');
         } else {
-            s.setProperty('--bg', config.App_Bg_Color || '#fff');
+            s.setProperty('--bg', conf.App_Bg_Color || '#f8f9fa');
             bg.style.backgroundImage = 'none';
         }
 
-        // LOGO LOGIC
-        const logoBox = document.getElementById('logo-container');
-        if(config.Logo_Type === 'TEXT') {
-            logoBox.innerHTML = `<h1 class="logo-text" onclick="goHome()">${config.Logo_Text || 'Menu'}</h1>`;
-            s.setProperty('--l-s', config.Logo_Text_Size || '1.8rem');
-            s.setProperty('--l-c', config.Logo_Text_Color || '#000');
-        } else if (config.Logo_URL) {
-            logoBox.innerHTML = `<img src="${config.Logo_URL}" class="logo-img" onclick="goHome()">`;
+        // LOGO
+        const lb = document.getElementById('logo-box');
+        if(conf.Logo_Type === 'TEXT') {
+            lb.innerHTML = `<h1 class="logo-text" onclick="home()">${conf.Logo_Text || 'MENU'}</h1>`;
+            s.setProperty('--l-s', conf.Logo_Text_Size || '1.8rem');
+            s.setProperty('--l-c', conf.Logo_Text_Color || '#000');
+        } else {
+            lb.innerHTML = `<img src="${conf.Logo_URL}" class="logo-img" onclick="home()">`;
         }
 
-        // SUBTITLE LOGIC
+        // SOTTOTITOLO
         const sub = document.getElementById('subtitle');
-        if(config.Show_Subtitle === 'SI' && config.App_Subtitle) {
-            sub.innerText = config.App_Subtitle;
-            s.setProperty('--sub-s', config.Subtitle_Size || '0.9rem');
-            s.setProperty('--sub-c', config.Subtitle_Color || '#777');
-            s.setProperty('--sub-w', config.Subtitle_Weight || '500');
+        if(conf.Show_Subtitle === 'SI') {
+            sub.innerText = conf.App_Subtitle || '';
+            s.setProperty('--sub-s', conf.Subtitle_Size || '0.9rem');
+            s.setProperty('--sub-c', conf.Subtitle_Color || '#777');
         } else { sub.style.display = 'none'; }
 
-        // MACRO LOGIC
-        s.setProperty('--p', config.Theme_Primary || '#000');
-        s.setProperty('--m-h', config.Macro_Height || '200px');
-        s.setProperty('--m-fs', config.Macro_Text_Size || '2rem');
-        s.setProperty('--m-c', config.Macro_Text_Color || '#fff');
-        s.setProperty('--m-w', config.Macro_Text_Weight || '900');
-        s.setProperty('--m-align', config.Macro_Text_Align === 'left' ? 'flex-start' : config.Macro_Text_Align === 'right' ? 'flex-end' : 'center');
+        // STILI MACRO
+        s.setProperty('--p', conf.Theme_Primary || '#000');
+        s.setProperty('--m-h', conf.Macro_Height || '200px');
+        s.setProperty('--m-fs', conf.Macro_Text_Size || '2rem');
+        s.setProperty('--m-c', conf.Macro_Text_Color || '#fff');
+        s.setProperty('--m-w', conf.Macro_Text_Weight || '900');
+        let al = conf.Macro_Text_Align || 'center';
+        s.setProperty('--m-align', al === 'left' ? 'flex-start' : al === 'right' ? 'flex-end' : 'center');
 
-        if(config.Show_Filters === 'SI') document.getElementById('filters').style.display = 'flex';
-        if(config.Font_Main) {
-            document.getElementById('font-link').href = `https://fonts.googleapis.com/css2?family=${config.Font_Main.replace(/ /g, '+')}&display=swap`;
-            document.body.style.fontFamily = `'${config.Font_Main}', sans-serif`;
+        if(conf.Show_Filters === 'SI') document.getElementById('f-bar').style.display = 'flex';
+        if(conf.Font_Main) {
+            document.getElementById('font-link').href = `https://fonts.googleapis.com/css2?family=${conf.Font_Main.replace(/ /g, '+')}:wght@400;700;900&display=swap`;
+            document.body.style.fontFamily = `'${conf.Font_Main}', sans-serif`;
         }
     }
 
-    function render() {
-        const out = document.getElementById('main-view');
+    function draw() {
+        const out = document.getElementById('view');
         out.innerHTML = '';
-        const mode = config.Layout_Mode || 'CATEGORIE';
+        const mode = conf.Layout_Mode || 'CATEGORIE';
 
         if(mode === 'MACRO' && !state.m) {
-            const macros = [...new Set(menu.map(i => i.Macro).filter(m => m))];
-            const listClass = config.Macro_Layout === 'GRID' ? 'macro-grid' : 'macro-list';
-            let h = `<div class="${listClass} fade">`;
-            macros.forEach(m => {
+            const ms = [...new Set(menu.map(i => i.Macro).filter(m => m))];
+            let h = `<div class="${conf.Macro_Layout === 'GRID' ? 'macro-grid' : 'macro-list'} fade">`;
+            ms.forEach(m => {
                 const img = menu.find(i => i.Macro === m && i.Cat_Foto_URL)?.Cat_Foto_URL || '';
-                h += `<div class="macro-card" onclick="up('m', '${m}')"><img src="${img}"><div class="macro-overlay"></div><span class="macro-txt">${m}</span></div>`;
+                h += `<div class="macro-card" onclick="up('m','${m}')"><img src="${img}"><div class="macro-overlay"></div><span class="macro-txt">${m}</span></div>`;
             });
             out.innerHTML = h + '</div>';
         } else if((mode === 'MACRO' && state.m && !state.c) || (mode === 'CATEGORIE' && !state.c)) {
             let filtered = state.m ? menu.filter(i => i.Macro === state.m) : menu;
-            const cats = [...new Set(filtered.map(i => i.Categoria))];
-            let h = state.m ? `<div class="btn-back" onclick="up('m', null)">← Menu</div>` : '';
+            const cs = [...new Set(filtered.map(i => i.Categoria))];
+            let h = state.m ? `<div class="btn-back" onclick="up('m',null)">← Indietro</div>` : '';
             h += `<div class="cat-grid fade">`;
-            cats.forEach(c => {
+            cs.forEach(c => {
                 const img = filtered.find(i => i.Categoria === c && i.Cat_Foto_URL)?.Cat_Foto_URL || '';
-                h += `<div class="cat-card" onclick="up('c', '${c}')"><img src="${img}"><b>${c}</b></div>`;
+                h += `<div class="cat-card" onclick="up('c','${c}')"><img src="${img}"><b>${c}</b></div>`;
             });
             out.innerHTML = h + '</div>';
         } else {
@@ -207,14 +206,16 @@
             if(state.f.Vegano) items = items.filter(i => i.Vegano === 'SI');
             if(state.f.Analcolico) items = items.filter(i => i.Analcolico === 'SI');
 
-            let h = `<div class="btn-back" onclick="up('c', null)">← Indietro</div><div class="fade">`;
+            let h = `<div class="btn-back" onclick="up('c',null)">← Indietro</div><div class="fade">`;
             items.forEach(i => {
+                let price = i.Prezzo;
+                if(price && price.includes(':')) price = parseFloat(price.split(':')[0]) + "." + price.split(':')[1];
                 h += `<div class="dish-card">
-                    ${i.Foto_URL ? `<img src="${i.Foto_URL}" class="dish-img">` : ''}
+                    ${i.Foto_URL && i.Foto_URL !== 'https://' ? `<img src="${i.Foto_URL}" class="dish-img">` : ''}
                     <div style="flex:1">
                         <div class="dish-name">${i.Nome_IT || i.Nome_EN}</div>
                         <div class="dish-desc">${i.Desc_IT || ''}</div>
-                        <div class="dish-price">${i.Prezzo}€</div>
+                        <div class="dish-price">${price}€</div>
                     </div>
                 </div>`;
             });
@@ -222,10 +223,10 @@
         }
     }
 
-    window.up = (k, v) => { state[k] = v; render(); window.scrollTo(0,0); };
-    window.goHome = () => { state.m = null; state.c = null; render(); };
-    window.toggleF = (f, btn) => { state.f[f] = !state.f[f]; btn.classList.toggle('active'); render(); };
-    window.onscroll = () => { document.getElementById('h').classList.toggle('header-bg', window.scrollY > 20); };
+    window.up = (k, v) => { state[k] = v; draw(); window.scrollTo(0,0); };
+    window.home = () => { state.m = null; state.c = null; draw(); };
+    window.tk = (f, b) => { state.f[f] = !state.f[f]; b.classList.toggle('active'); draw(); };
+    window.onscroll = () => { document.getElementById('header').classList.toggle('header-bg', window.scrollY > 20); };
 
     init();
 </script>
