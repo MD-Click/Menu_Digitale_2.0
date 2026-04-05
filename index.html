@@ -3,46 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Menu Pro - Navigation Edition</title>
-    <link id="font-link" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap">
+    <title>Smart Menu Ultimate - Pixel Perfect</title>
+    <link id="font-link" rel="stylesheet" href="">
     <style>
-        :root { --primary: #8B0000; --bg: #fff; --card: #fff; --radius: 15px; }
-        body { margin: 0; background: var(--bg); font-family: 'Montserrat', sans-serif; transition: 0.3s; color: #333; }
-        #loader { position:fixed; inset:0; background:white; display:flex; align-items:center; justify-content:center; z-index:1000; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-        header { padding: 30px 20px; text-align: center; background: white; }
-        .container { padding: 0 20px 60px; max-width: 600px; margin: auto; min-height: 80vh; }
+        /* CSS RESET E VARIABILI DINAMICHE */
+        :root {
+            --app-bg: #fff; --primary: #000; 
+            
+            /* Variabili Card Dinamiche */
+            --card-bg: #fff; --card-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            --card-border: 1px solid rgba(0,0,0,0.02); --card-padding: 15px;
+            
+            /* Dimensioni Immagini */
+            --cat-img-size: 100px; --dish-img-size: 85px;
+            
+            /* Tipografia, Allineamenti e Spessori */
+            --cat-title-size: 1.5rem; --cat-title-color: #000; --cat-title-align: left; --cat-title-weight: 800;
+            --cat-text-align: center; --dish-text-align: left;
+            
+            --dish-name-size: 1.1rem; --dish-name-color: #000; --dish-name-weight: bold;
+            --desc-size: 0.85rem; --desc-color: #666; --desc-weight: normal;
+            --price-size: 1.2rem; --price-color: #000; --price-weight: 800;
+            --allergens-size: 0.75rem; --allergens-color: #e67e22; --allergens-weight: 500;
+            
+            --name-desc-gap: 4px; /* Distanza Nome - Descrizione */
 
-        /* BOTTONI CATEGORIE */
-        .cat-card { 
-            background: var(--card); padding: 22px; border-radius: var(--radius); 
-            margin-bottom: 12px; text-align: center; font-weight: bold; 
-            text-transform: uppercase; letter-spacing: 1px; color: var(--primary);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06); cursor: pointer; border: 1px solid rgba(0,0,0,0.02);
+            /* Sottotitolo */
+            --sub-size: 0.9rem; --sub-color: #777; --sub-align: center; --sub-weight: 500;
         }
+
+        body { margin: 0; background: var(--app-bg); font-family: sans-serif; transition: 0.3s; color: #333; overflow-x: hidden; }
+        * { box-sizing: border-box; }
+
+        #loader { position:fixed; inset:0; background:var(--app-bg); display:flex; align-items:center; justify-content:center; z-index:1000; }
+        .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,0,0,0.1); border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+
+        /* HEADER E SOTTOTITOLO */
+        header { padding: 25px 20px; text-align: center; position: sticky; top: 0; background: var(--app-bg); z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        #app-subtitle { font-size: var(--sub-size); color: var(--sub-color); text-align: var(--sub-align); font-weight: var(--sub-weight); margin-top: 10px; display: none; }
+
+        .container { padding: 15px 20px 80px; max-width: 800px; margin: auto; min-height: 80vh; }
+
+        /* MOTORE DI RICERCA */
+        .search-container { margin-top: 15px; display: none; }
+        .search-container input { width: 100%; padding: 12px 20px; border-radius: 30px; border: 1px solid #ddd; outline: none; font-size: 1rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
 
         /* NAVIGAZIONE */
-        .back-btn { display: inline-block; padding: 10px 0; color: var(--primary); font-weight: bold; cursor: pointer; margin-bottom: 15px; text-transform: uppercase; font-size: 0.75rem; }
+        .top-bar { display: flex; justify-content: flex-start; margin-bottom: 20px; }
+        .back-btn { padding: 8px 15px; background: rgba(0,0,0,0.05); color: var(--primary); font-weight: bold; border-radius: 20px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; }
+        #scroll-top { position: fixed; bottom: 25px; right: 25px; background: var(--primary); color: white; width: 50px; height: 50px; border-radius: 50%; display: none; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 99; font-size: 24px; border: none; transition: 0.3s; }
+
+        /* LAYOUT SISTEMA (LIST vs GRID) */
+        .layout-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .layout-list { display: flex; flex-direction: column; gap: 10px; }
+
+        /* TITOLI SEZIONI */
+        .section-title { font-size: var(--cat-title-size); color: var(--cat-title-color); text-align: var(--cat-title-align); font-weight: var(--cat-title-weight); margin: 30px 0 15px; text-transform: uppercase; }
         
-        /* TASTO TORNA SU (Floating) */
-        #scroll-top {
-            position: fixed; bottom: 20px; right: 20px; background: var(--primary);
-            color: white; width: 45px; height: 45px; border-radius: 50%;
-            display: none; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; z-index: 99;
-            font-size: 20px; border: none;
-        }
+        /* CARD */
+        .card { background: var(--card-bg); border-radius: 15px; overflow: hidden; box-shadow: var(--card-shadow); border: var(--card-border); padding: var(--card-padding); transition: transform 0.2s; cursor: pointer; }
+        .card:active { transform: scale(0.98); }
 
-        .category-header { font-size: 1.4rem; color: var(--primary); margin: 30px 0 15px; text-transform: uppercase; font-weight: 800; border-left: 5px solid var(--primary); padding-left: 12px; }
+        /* STILI CATEGORIA */
+        .cat-card-list { display: flex; align-items: center; justify-content: var(--cat-text-align); text-align: var(--cat-text-align); }
+        .cat-card-grid { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .cat-img { width: var(--cat-img-size); height: var(--cat-img-size); object-fit: cover; background: #f0f0f0; flex-shrink: 0; }
+        .cat-card-list .cat-img { margin-right: 15px; }
+        .cat-card-grid .cat-img { margin-bottom: 15px; }
+        .cat-name { font-size: var(--cat-title-size); color: var(--cat-title-color); font-weight: var(--cat-title-weight); text-transform: uppercase; margin: 0; width: 100%; }
 
-        .item-card { background: var(--card); border-radius: var(--radius); padding: 12px; margin-bottom: 15px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); animation: fadeIn 0.4s ease; }
-        .item-img { width: 85px; height: 85px; object-fit: cover; border-radius: var(--radius); margin-right: 15px; flex-shrink: 0; background: #eee; }
-        .item-info { flex: 1; }
-        .item-name { font-weight: bold; font-size: 1rem; margin: 0; color: var(--primary); }
-        .item-desc { font-size: 0.8rem; color: #777; margin: 4px 0; line-height: 1.2; }
-        .item-price { font-weight: 800; color: var(--primary); font-size: 1.1rem; display: block; margin-top: 5px; }
+        /* STILI PIATTO */
+        .dish-card-list { display: flex; align-items: center; cursor: default; }
+        .dish-card-grid { display: flex; flex-direction: column; cursor: default; }
+        .dish-img { width: var(--dish-img-size); height: var(--dish-img-size); object-fit: cover; background: #f0f0f0; flex-shrink: 0; }
+        
+        .dish-card-list .dish-img { margin-right: 15px; }
+        .dish-card-grid .dish-img { margin-bottom: 15px; margin-left: auto; margin-right: auto; }
+        
+        .dish-info { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; text-align: var(--dish-text-align); }
+        
+        /* Spaziature e Pesi Controllati */
+        .dish-name { font-size: var(--dish-name-size); color: var(--dish-name-color); font-weight: var(--dish-name-weight); margin: 0 0 var(--name-desc-gap) 0; }
+        .dish-desc { font-size: var(--desc-size); color: var(--desc-color); font-weight: var(--desc-weight); margin: 0 0 6px 0; line-height: 1.3; }
+        .dish-allergens { font-size: var(--allergens-size); color: var(--allergens-color); font-weight: var(--allergens-weight); margin: 0 0 4px 0; }
+        .dish-price { font-size: var(--price-size); color: var(--price-color); font-weight: var(--price-weight); margin-top: auto; padding-top: 5px;}
+
+        /* FORME IMMAGINI */
+        .shape-circle { border-radius: 50%; }
+        .shape-square { border-radius: 0; }
+        .shape-rounded { border-radius: 15px; }
 
         @keyframes spin { 100% { transform: rotate(360deg); } }
+        .fade-in { animation: fadeIn 0.4s ease forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -50,12 +102,15 @@
 
 <div id="loader"><div class="spinner"></div></div>
 
-<header onclick="window.scrollTo({top:0, behavior:'smooth'})" style="cursor:pointer;">
-    <img id="logo" src="" style="max-height:90px; display:none;">
+<header id="main-header" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+    <img id="logo" src="" style="max-height:90px; display:none; margin:0 auto; cursor:pointer;">
+    <div id="app-subtitle"></div>
+    <div class="search-container" id="search-box">
+        <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="Cerca nel menu...">
+    </div>
 </header>
 
 <div class="container" id="app-container"></div>
-
 <button id="scroll-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
 
 <script>
@@ -68,7 +123,7 @@
     let config = {};
 
     async function init() {
-        if(!SHEET_ID) return;
+        if(!SHEET_ID) { document.getElementById('loader').innerHTML = 'Manca ID configurazione'; return; }
         try {
             const [confRaw, menuRaw] = await Promise.all([
                 fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config`).then(r => r.text()),
@@ -76,10 +131,11 @@
             ]);
             config = parseCSV(confRaw).reduce((acc, row) => ({ ...acc, [row.Parametro]: row.Valore }), {});
             fullMenu = parseCSV(menuRaw).filter(i => i.Attivo === 'SI');
-            applyStyles();
-            renderMain();
+            
+            injectDynamicStyles();
+            renderView();
             document.getElementById('loader').remove();
-        } catch (e) { document.getElementById('loader').innerText = "Errore dati."; }
+        } catch (e) { document.getElementById('loader').innerText = "Errore di connessione dati."; }
     }
 
     function parseCSV(text) {
@@ -91,12 +147,200 @@
         });
     }
 
-    function applyStyles() {
+    function injectDynamicStyles() {
         const root = document.documentElement.style;
-        root.setProperty('--primary', config.Theme_Primary);
-        root.setProperty('--bg', config.App_Bg);
-        root.setProperty('--card', config.Card_Bg);
-        root.setProperty('--radius', config.Card_Radius);
-        if(config.Logo_URL) { const l = document.getElementById('logo'); l.src = config.Logo_URL; l.style.display = 'inline'; }
+        root.setProperty('--app-bg', config.App_Bg || '#fff');
+        root.setProperty('--primary', config.Theme_Primary || '#000');
+        
+        // GESTIONE "SHOW CARDS"
+        if(config.Show_Cards === 'NO') {
+            root.setProperty('--card-bg', 'transparent');
+            root.setProperty('--card-shadow', 'none');
+            root.setProperty('--card-border', 'none');
+            root.setProperty('--card-padding', '10px 0');
+        } else {
+            root.setProperty('--card-bg', config.Card_Bg || '#fff');
+            root.setProperty('--card-shadow', '0 4px 12px rgba(0,0,0,0.05)');
+            root.setProperty('--card-border', '1px solid rgba(0,0,0,0.02)');
+            root.setProperty('--card-padding', '15px');
+        }
+
+        // DIMENSIONI E FORME
+        root.setProperty('--cat-img-size', config.Cat_Img_Size || '100px');
+        root.setProperty('--dish-img-size', config.Dish_Img_Size || '85px');
+        
+        // TIPOGRAFIA (Colori e Dimensioni)
+        root.setProperty('--cat-title-size', config.Text_CatTitle_Size || '1.5rem');
+        root.setProperty('--cat-title-color', config.Text_CatTitle_Color || '#000');
+        root.setProperty('--dish-name-size', config.Text_DishName_Size || '1.1rem');
+        root.setProperty('--dish-name-color', config.Text_DishName_Color || '#000');
+        root.setProperty('--desc-size', config.Text_Desc_Size || '0.85rem');
+        root.setProperty('--desc-color', config.Text_Desc_Color || '#666');
+        root.setProperty('--price-size', config.Text_Price_Size || '1.2rem');
+        root.setProperty('--price-color', config.Text_Price_Color || '#000');
+        root.setProperty('--allergens-size', config.Text_Allergens_Size || '0.75rem');
+        root.setProperty('--allergens-color', config.Text_Allergens_Color || '#e67e22');
+
+        // SPESSORI (Font Weight) e DISTANZE
+        root.setProperty('--cat-title-weight', config.Text_CatTitle_Weight || '800');
+        root.setProperty('--dish-name-weight', config.Text_DishName_Weight || 'bold');
+        root.setProperty('--desc-weight', config.Text_Desc_Weight || 'normal');
+        root.setProperty('--price-weight', config.Text_Price_Weight || '800');
+        root.setProperty('--allergens-weight', config.Text_Allergens_Weight || '500');
+        root.setProperty('--name-desc-gap', config.Dish_Name_Desc_Gap || '4px');
+
+        // ALLINEAMENTI Testi
+        root.setProperty('--cat-title-align', config.Text_CatTitle_Align || 'left');
+        root.setProperty('--cat-text-align', config.Cat_Text_Align || 'center');
+        root.setProperty('--dish-text-align', config.Dish_Text_Align || 'left');
+
+        // GESTIONE SOTTOTITOLO
+        if(config.App_Subtitle) {
+            const sub = document.getElementById('app-subtitle');
+            sub.innerText = config.App_Subtitle;
+            sub.style.display = 'block';
+            root.setProperty('--sub-size', config.Subtitle_Size || '0.9rem');
+            root.setProperty('--sub-color', config.Subtitle_Color || '#777');
+            root.setProperty('--sub-align', config.Subtitle_Align || 'center');
+            root.setProperty('--sub-weight', config.Subtitle_Weight || '500');
+        }
+
+        // Font, Logo, Search
         if(config.Font_Main) {
-            document.getElementById('
+            // Importiamo tutti i pesi principali per permettere le personalizzazioni
+            document.getElementById('font-link').href = `https://fonts.googleapis.com/css2?family=${config.Font_Main.replace(/ /g, '+')}:wght@300;400;500;600;700;800;900&display=swap`;
+            document.body.style.fontFamily = `'${config.Font_Main}', sans-serif`;
+        }
+        if(config.Logo_URL) { const l = document.getElementById('logo'); l.src = config.Logo_URL; l.style.display = 'block'; }
+        if(config.Show_Search === 'SI') {
+            document.getElementById('search-box').style.display = 'block';
+            document.getElementById('search-input').placeholder = (currentLang === 'es' ? 'Buscar...' : (currentLang === 'it' ? 'Cerca...' : 'Search...'));
+        }
+    }
+
+    let currentCategory = null;
+
+    function renderView() {
+        const container = document.getElementById('app-container');
+        container.innerHTML = '';
+        document.getElementById('search-input').value = ''; 
+        
+        if (config.Layout_Mode === 'CATEGORIE' && !currentCategory) {
+            renderCategoriesGrid(container);
+        } else if (config.Layout_Mode === 'CATEGORIE' && currentCategory) {
+            renderCategoryDetail(container, currentCategory);
+        } else {
+            renderFullList(container);
+        }
+    }
+
+    function renderCategoriesGrid(container) {
+        const categories = [...new Set(fullMenu.map(i => i.Categoria))];
+        const layoutClass = config.Cat_Layout === 'GRID' ? 'layout-grid' : 'layout-list';
+        const cardClass = config.Cat_Layout === 'GRID' ? 'cat-card-grid' : 'cat-card-list';
+        const imgShape = `shape-${config.Cat_Img_Shape || 'rounded'}`;
+
+        let html = `<div class="${layoutClass} fade-in">`;
+        categories.forEach(cat => {
+            const firstItem = fullMenu.find(i => i.Categoria === cat);
+            const catImg = firstItem && firstItem.Cat_Foto_URL ? `<img src="${firstItem.Cat_Foto_URL}" class="cat-img ${imgShape}">` : '';
+            html += `<div class="card ${cardClass}" onclick="openCategory('${cat}')">${catImg}<h2 class="cat-name">${cat}</h2></div>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    function renderCategoryDetail(container, catName) {
+        const items = fullMenu.filter(i => i.Categoria === catName);
+        const backTxt = (currentLang === 'es' ? 'Volver' : (currentLang === 'it' ? 'Indietro' : 'Back'));
+        
+        let html = `<div class="top-bar fade-in"><div class="back-btn" onclick="openCategory(null)">← ${backTxt}</div></div>`;
+        html += `<div class="section-title fade-in">${catName}</div>`;
+        html += buildDishLayout(items);
+        container.innerHTML = html;
+        window.scrollTo(0,0);
+    }
+
+    function renderFullList(container) {
+        const categories = [...new Set(fullMenu.map(i => i.Categoria))];
+        let html = '';
+        categories.forEach(cat => {
+            const items = fullMenu.filter(i => i.Categoria === cat);
+            html += `<div class="section-title fade-in">${cat}</div>`;
+            html += buildDishLayout(items);
+        });
+        container.innerHTML = html;
+    }
+
+    function buildDishLayout(items) {
+        const layoutClass = config.Dish_Layout === 'GRID' ? 'layout-grid' : 'layout-list';
+        const cardClass = config.Dish_Layout === 'GRID' ? 'dish-card-grid' : 'dish-card-list';
+        const imgShape = `shape-${config.Dish_Img_Shape || 'rounded'}`;
+
+        let html = `<div class="${layoutClass} fade-in">`;
+        items.forEach(item => {
+            const name = item['Nome_'+currentLang.toUpperCase()] || item.Nome_EN;
+            const desc = item['Desc_'+currentLang.toUpperCase()] || item.Desc_EN;
+            const img = item.Foto_URL ? `<img src="${item.Foto_URL}" class="dish-img ${imgShape}" onerror="this.style.display='none'">` : '';
+            const alg = item.Allergeni ? `<div class="dish-allergens">${item.Allergeni}</div>` : '';
+
+            html += `
+                <div class="card ${cardClass} dish-item-searchable">
+                    ${img}
+                    <div class="dish-info">
+                        <p class="dish-name">${name}</p>
+                        ${desc ? `<p class="dish-desc">${desc}</p>` : ''}
+                        ${alg}
+                        <div class="dish-price">${item.Prezzo}€</div>
+                    </div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        return html;
+    }
+
+    window.openCategory = function(catName) { currentCategory = catName; renderView(); };
+
+    window.handleSearch = function() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const container = document.getElementById('app-container');
+        
+        if (query.length > 0 && config.Layout_Mode === 'CATEGORIE' && !currentCategory) {
+            renderFullList(container); 
+        } else if (query.length === 0 && config.Layout_Mode === 'CATEGORIE' && !currentCategory) {
+            renderCategoriesGrid(container); 
+            return;
+        }
+
+        const titles = document.querySelectorAll('.section-title');
+        const cards = document.querySelectorAll('.dish-item-searchable');
+        
+        cards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            card.style.display = text.includes(query) ? 'flex' : 'none';
+        });
+
+        titles.forEach(title => {
+            const nextGrid = title.nextElementSibling;
+            if(nextGrid && nextGrid.classList.contains('fade-in')) {
+                const visibleCards = Array.from(nextGrid.querySelectorAll('.dish-item-searchable')).filter(c => c.style.display !== 'none');
+                title.style.display = visibleCards.length ? 'block' : 'none';
+                nextGrid.style.display = visibleCards.length ? (config.Dish_Layout==='GRID'?'grid':'flex') : 'none';
+            }
+        });
+    };
+
+    window.onscroll = function() {
+        const btn = document.getElementById('scroll-top');
+        if (document.body.scrollTop > 350 || document.documentElement.scrollTop > 350) {
+            btn.style.display = "flex";
+        } else {
+            btn.style.display = "none";
+        }
+    };
+
+    window.onload = init;
+</script>
+</body>
+</html>
