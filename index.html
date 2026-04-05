@@ -3,152 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Menu Pro v4</title>
+    <title>PWA Master Engine</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link id="dynamic-font" rel="stylesheet">
     <style>
-        :root { --p: #000; --bg: #fff; --c-bg: #fff; --m-h: 180px; --m-fs: 2rem; --m-c: #fff; }
-        body { margin:0; font-family: sans-serif; background-color: var(--bg); min-height: 100vh; transition: background 0.4s; }
-        #bg-layer { position:fixed; inset:0; z-index:-1; background-size:cover; background-position:center; transition: 0.5s ease-in-out; }
-        #loader { position:fixed; inset:0; background:#fff; display:flex; align-items:center; justify-content:center; z-index:1000; }
-        .spin { width:40px; height:40px; border:4px solid #eee; border-top:4px solid #000; border-radius:50%; animation: s 1s linear infinite; }
-        @keyframes s { 100% { transform:rotate(360deg); } }
-        header { padding: 30px 15px; text-align:center; position:sticky; top:0; z-index:100; }
-        #logo-wrap h1 { margin:0; font-size: var(--l-fs, 2rem); color: var(--l-c, #000); font-weight:900; text-transform:uppercase; }
-        #logo-wrap img { max-height: 80px; display:block; margin:0 auto; }
-        .container { padding:15px; max-width:800px; margin:auto; }
-        .m-list { display:flex; flex-direction:column; gap:15px; }
-        .m-card { height:var(--m-h); border-radius:25px; overflow:hidden; position:relative; display:flex; align-items:center; justify-content: center; cursor:pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .m-card img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
-        .m-ov { position:absolute; inset:0; background:rgba(0,0,0,0.4); z-index:2; }
-        .m-txt { position:relative; z-index:3; color:var(--m-c); font-size:var(--m-fs); font-weight:900; text-transform:uppercase; }
-        .c-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:15px; }
-        .c-card { background: var(--c-bg); border-radius:20px; padding:12px; text-align:center; cursor:pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.06); }
-        .c-card img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:15px; margin-bottom:10px; }
-        .d-card { background: var(--c-bg); border-radius:18px; padding:15px; display:flex; align-items:center; margin-bottom:12px; }
-        .d-img { width:80px; height:80px; object-fit:cover; border-radius:14px; margin-right:15px; }
-        .nav-back { display:inline-flex; align-items:center; padding:10px 20px; background:rgba(0,0,0,0.1); border-radius:50px; font-weight:800; margin-bottom:20px; cursor:pointer; }
+        :root { --accent: #ffcc00; --bg: #ffffff; --text: #000; }
+        body { margin: 0; background: var(--bg); color: var(--text); font-family: sans-serif; transition: 0.5s; }
+        #loader { position: fixed; inset: 0; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; transition: 0.5s; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #eee; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        header { text-align: center; padding: 30px; }
+        .cat-title { background: var(--accent); padding: 12px; font-weight: 900; text-transform: uppercase; position: sticky; top: 0; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 15px; }
+        .card { background: var(--card-bg, #f4f4f4); padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .price { font-weight: bold; color: var(--accent); font-size: 1.2rem; }
     </style>
 </head>
 <body>
-    <div id="loader"><div class="spin"></div></div>
-    <div id="bg-layer"></div>
-    <header><div id="logo-wrap"></div><div id="subt"></div></header>
-    <div class="container"><div id="view"></div></div>
+
+<div id="loader">
+    <div class="spinner"></div>
+    <div id="status-text" style="margin-top:20px; font-weight:bold;">Invocazione Dati...</div>
+    <div id="slow-msg" style="display:none; margin-top:10px; color:#666; font-size:0.9rem; text-align:center; padding:20px;"></div>
+</div>
+
+<header id="header"></header>
+<div id="google_translate_element" style="display:none"></div>
+<main id="app"></main>
 
 <script>
-    const SID = new URLSearchParams(window.location.search).get('id');
-    let db = [], cfg = {}, st = { m: null, c: null };
+const params = new URLSearchParams(window.location.search);
+const ID = params.get('id');
+const GID_MENU = "595974812"; // <--- ASSICURATI CHE QUESTO SIA IL GID DEL TUO TAB "MENU"
 
-    // Pulizia estrema per matchare i parametri
-    const normalize = (s) => s ? s.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+async function start() {
+    if(!ID) { document.getElementById('status-text').innerText = "❌ Manca ?id= nell'URL"; return; }
+    
+    // Timer per rallentamenti
+    const slowTimer = setTimeout(() => document.getElementById('slow-msg').style.display = 'block', 3000);
 
-    async function loadData() {
-        if(!SID) return;
-        const ts = Date.now();
-        try {
-            const [rawC, rawM] = await Promise.all([
-                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Config&v=${ts}`).then(r => r.text()),
-                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Menu&v=${ts}`).then(r => r.text())
-            ]);
+    try {
+        // Carica Config (GID 0)
+        const config = await loadSheet(ID, 0);
+        const cfg = {}; config.forEach(r => cfg[r.Parametro] = r.Valore);
+        
+        // Messaggio personalizzato
+        document.getElementById('slow-msg').innerText = cfg.Loading_Msg || "Quasi pronti...";
 
-            // PARSING CONFIG - LOGICA "BRUTA" (Ignora intestazioni, cerca solo coppie chiave-valore)
-            const rowsC = rawC.split('\n').map(row => row.split(',').map(cell => cell.replace(/^"|"$/g, '').trim()));
-            rowsC.forEach(row => {
-                if(row.length >= 2) {
-                    const key = normalize(row[0]);
-                    const val = row[1];
-                    if(key) cfg[key] = val;
-                }
-            });
-
-            // PARSING MENU
-            const rowsM = rawM.split('\n').map(row => row.split(',').map(cell => cell.replace(/^"|"$/g, '').trim()));
-            const headM = rowsM[0].map(h => normalize(h));
-            db = rowsM.slice(1).map(row => {
-                let obj = {};
-                headM.forEach((h, i) => obj[h] = row[i]);
-                return obj;
-            }).filter(i => normalize(i.attivo) === 'si');
-
-            console.log("Configurazione Finale Applicata:", cfg);
-            
-            applyConfig();
-            render();
-            document.getElementById('loader').style.display = 'none';
-        } catch (e) { console.error("Errore critico:", e); }
+        // Carica Menu
+        const menu = await loadSheet(ID, GID_MENU);
+        
+        // Costruisci UI
+        applyStyles(cfg);
+        render(menu, cfg);
+        
+        // Fine
+        clearTimeout(slowTimer);
+        document.getElementById('loader').style.opacity = '0';
+        setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+        initTranslate();
+    } catch (e) {
+        document.getElementById('status-text').innerText = "⚠️ Errore: Verifica Pubblicazione CSV";
     }
+}
 
-    function applyConfig() {
-        const s = document.documentElement.style;
-        const bg = document.getElementById('bg-layer');
-        const lw = document.getElementById('logo-wrap');
+async function loadSheet(id, gid) {
+    const url = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}&t=${Date.now()}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    return new Promise(resolve => Papa.parse(text, {header:true, complete: r => resolve(r.data)}));
+}
 
-        // 1. SFONDO (Forzato)
-        const isImage = normalize(cfg.appbgtype) === 'image';
-        if(isImage && cfg.appbgimage) {
-            bg.style.backgroundImage = `url('${cfg.appbgimage}')`;
-            s.setProperty('--bg', 'transparent');
-        } else {
-            s.setProperty('--bg', cfg.appbgcolor || '#f8f9fa');
-            bg.style.backgroundImage = 'none';
-        }
-
-        // 2. LOGO / NOME
-        if(normalize(cfg.logotype) === 'text') {
-            lw.innerHTML = `<h1 onclick="st.m=st.c=null;render()">${cfg.logotext || 'MENU'}</h1>`;
-            s.setProperty('--l-c', cfg.logotextcolor || '#000');
-            s.setProperty('--l-fs', cfg.logotextsize || '2rem');
-        } else if(cfg.logourl) {
-            lw.innerHTML = `<img src="${cfg.logourl}" onclick="st.m=st.c=null;render()">`;
-        }
-
-        // 3. COLORI E GRANDEZZE
-        s.setProperty('--p', cfg.themeprimary || '#000');
-        s.setProperty('--c-bg', cfg.cardbg || '#fff');
-        s.setProperty('--m-h', cfg.macroheight || '180px');
-        s.setProperty('--m-fs', cfg.macrotextsize || '2rem');
-        s.setProperty('--m-c', cfg.macrotextcolor || '#fff');
+function applyStyles(cfg) {
+    const r = document.documentElement;
+    if(cfg.Font_Main) {
+        document.getElementById('dynamic-font').href = `https://fonts.googleapis.com/css2?family=${cfg.Font_Main.replace(/ /g, '+')}&display=swap`;
+        document.body.style.fontFamily = cfg.Font_Main;
     }
+    r.style.setProperty('--accent', cfg.Filter_Active_Color || '#ffcc00');
+    r.style.setProperty('--bg', cfg.App_Bg_Color || '#fff');
+    r.style.setProperty('--card-bg', cfg.Card_Bg || '#f4f4f4');
+    
+    const h = document.getElementById('header');
+    h.innerHTML = cfg.Logo_Type === 'TEXT' ? `<h1>${cfg.Logo_Text}</h1>` : `<img src="${cfg.Logo_URL}" style="max-height:80px">`;
+}
 
-    function render() {
-        const view = document.getElementById('view');
-        const mode = normalize(cfg.layoutmode);
-        view.innerHTML = '';
-
-        if(mode === 'macro' && !st.m) {
-            const ms = [...new Set(db.map(i => i.macro).filter(m => m))];
-            let html = '<div class="m-list">';
-            ms.forEach(m => {
-                const img = db.find(i => i.macro === m && i.catfotourl)?.catfotourl || '';
-                html += `<div class="m-card" onclick="st.m='${m}';render()"><img src="${img}"><div class="m-ov"></div><span class="m-txt">${m}</span></div>`;
-            });
-            view.innerHTML = html + '</div>';
-        } else if((mode === 'macro' && st.m && !st.c) || (mode !== 'macro' && !st.c)) {
-            const filtered = st.m ? db.filter(i => i.macro === st.m) : db;
-            const cats = [...new Set(filtered.map(i => i.categoria))];
-            let html = st.m ? `<div class="nav-back" onclick="st.m=null;render()">← Menu</div>` : '';
-            html += '<div class="c-grid">';
-            cats.forEach(c => {
-                const img = filtered.find(i => i.categoria === c && i.catfotourl)?.catfotourl || '';
-                html += `<div class="c-card" onclick="st.c='${c}';render()"><img src="${img}"><b>${c}</b></div>`;
-            });
-            view.innerHTML = html + '</div>';
-        } else {
-            const items = db.filter(i => i.categoria === st.c);
-            let html = `<div class="nav-back" onclick="st.c=null;render()">← Indietro</div>`;
-            items.forEach(i => {
-                html += `<div class="d-card">
-                    ${i.fotourl ? `<img src="${i.fotourl}" class="d-img">` : ''}
-                    <div>
-                        <div style="font-weight:900;">${i.nomeit}</div>
-                        <div style="font-size:0.8rem;color:#666;">${i.descit || ''}</div>
-                        <div style="color:var(--p);font-weight:900;margin-top:5px;">${i.prezzo}€</div>
-                    </div>
+function render(data, cfg) {
+    const app = document.getElementById('app');
+    const cats = [...new Set(data.map(i => i.Categoria))].filter(c => c);
+    
+    cats.forEach(c => {
+        const div = document.createElement('div');
+        div.innerHTML = `<div class="cat-title">${c}</div>`;
+        const grid = document.createElement('div');
+        grid.className = cfg.Cat_Layout === 'GRID' ? 'menu-grid' : '';
+        
+        data.filter(i => i.Categoria === c && i.Attivo === 'SI').forEach(item => {
+            grid.innerHTML += `
+                <div class="card" style="margin:10px">
+                    <div style="font-weight:bold">${item.Nome_IT}</div>
+                    <div style="font-size:0.8rem; opacity:0.7">${item.Desc_IT || ''}</div>
+                    <div class="price">€${item.Prezzo}</div>
                 </div>`;
-            });
-            view.innerHTML = html;
-        }
-    }
-    loadData();
+        });
+        div.appendChild(grid);
+        app.appendChild(div);
+    });
+}
+
+function initTranslate() {
+    const lang = navigator.language.split('-')[0];
+    if (lang === 'it') return;
+    window.googleTranslateElementInit = () => {
+        new google.translate.TranslateElement({pageLanguage: 'it'}, 'google_translate_element');
+        setTimeout(() => {
+            const s = document.querySelector('.goog-te-combo');
+            if(s) { s.value = lang; s.dispatchEvent(new Event('change')); }
+        }, 1000);
+    };
+    const s = document.createElement('script');
+    s.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    document.head.appendChild(s);
+}
+
+window.onload = start;
 </script>
 </body>
 </html>
