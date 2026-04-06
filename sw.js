@@ -1,19 +1,26 @@
-const CACHE_NAME = 'master-engine-v' + Date.now();
+const CACHE_NAME = 'menu-pwa-v1';
+const urlsToCache = [
+      './index.html',
+      './manifest.json'
+    ];
 
-self.addEventListener('install', e => {
-    self.skipWaiting();
+// Installazione SW
+self.addEventListener('install', event => {
+      event.waitUntil(
+              caches.open(CACHE_NAME)
+                .then(cache => {
+                            return cache.addAll(urlsToCache);
+                })
+            );
 });
 
-self.addEventListener('activate', e => {
-    e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))));
-});
-
-self.addEventListener('fetch', e => {
-    // Non cachare i CSV per permettere aggiornamenti istantanei dal foglio Google
-    if (e.request.url.includes('docs.google.com')) {
-        return fetch(e.request);
-    }
-    e.respondWith(
-        caches.match(e.request).then(res => res || fetch(e.request))
-    );
+// Intercettazione richieste di rete
+self.addEventListener('fetch', event => {
+      event.respondWith(
+              caches.match(event.request)
+                .then(response => {
+                            // Ritorna la cache se trovata, altrimenti fai la richiesta di rete
+                              return response || fetch(event.request);
+                })
+            );
 });
