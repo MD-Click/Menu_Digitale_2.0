@@ -8,21 +8,23 @@
   
   <style>
     :root {
+      /* Le variabili di altezza verranno sovrascritte dal JS */
+      --header-padding: 15px; 
+      
       --macro-height: 240px;
       --macro-text-size: 2.2rem;
       --macro-text-color: #ffffff;
-      --macro-text-align: center;
       --macro-img-cibo: url(''); 
       --macro-img-bevande: url(''); 
+      
       --filter-active-color: #f4fc03;
       --filter-bg-color: #1a1a1a;
-      --card-bg: rgba(255,255,255,1);
+      
+      --card-bg: #ffffff;
       --card-name-color: #050000;
       --card-desc-color: #616161;
       --card-allerg-color: #ff4444;
       --price-color: #000000;
-      --price-size: 1.4rem;
-      --price-align: right;
     }
 
     body {
@@ -33,7 +35,7 @@
       padding-bottom: 80px; 
     }
 
-    /* CLASSE DI SERVIZIO FONDAMENTALE */
+    /* CLASSE FONDAMENTALE (Sovrascrive tutto) */
     .hidden {
       display: none !important;
     }
@@ -47,7 +49,9 @@
       -webkit-backdrop-filter: blur(12px);
       z-index: 1000;
       border-bottom: 1px solid rgba(0,0,0,0.08);
-      padding-top: 15px;
+      /* L'altezza è controllata da questa variabile tramite JS */
+      padding-top: var(--header-padding);
+      padding-bottom: 10px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.03);
     }
 
@@ -59,10 +63,7 @@
       padding: 0 20px 10px;
     }
 
-    .header-titles {
-      text-align: center;
-    }
-
+    .header-titles { text-align: center; }
     #restaurant-name { margin: 0; font-size: 1.8rem; color: #000; font-weight: 800; letter-spacing: -0.5px; }
     #restaurant-subtitle { margin: 2px 0 0; font-size: 0.9rem; color: #666; }
 
@@ -85,7 +86,7 @@
       display: flex;
       justify-content: center;
       gap: 8px;
-      padding: 10px 15px 15px;
+      padding: 5px 15px 10px;
       overflow-x: auto;
       white-space: nowrap;
     }
@@ -101,30 +102,27 @@
       font-weight: 600;
       transition: all 0.2s ease;
     }
-
     .filter-btn.active { background-color: var(--filter-active-color); color: #000000; }
 
-    /* --- MACRO SEZIONE --- */
+    /* --- MACRO E PIATTI --- */
     .macro-container { display: flex; flex-direction: column; gap: 20px; padding: 20px; max-width: 800px; margin: 0 auto; }
-    .macro-card { height: var(--macro-height); color: var(--macro-text-color); font-size: var(--macro-text-size); display: flex; align-items: center; justify-content: center; border-radius: 16px; background-size: cover; background-position: center; text-decoration: none; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); transition: transform 0.2s; }
-    .macro-card:active { transform: scale(0.98); }
-    #macro-cibo { background-color: #ff9800; }
-    #macro-bevande { background-color: #2196f3; }
+    .macro-card { height: var(--macro-height); color: var(--macro-text-color); font-size: var(--macro-text-size); display: flex; align-items: center; justify-content: center; border-radius: 16px; text-decoration: none; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+    #btn-macro-cibo { background-color: #ff9800; }
+    #btn-macro-bevande { background-color: #2196f3; }
 
-    /* --- PIATTI SEZIONE --- */
     .dishes-container { display: flex; flex-direction: column; gap: 15px; padding: 20px; max-width: 800px; margin: 0 auto; }
-    .dish-card { background-color: var(--card-bg); border-radius: 12px; padding: 18px; flex-direction: column; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .dish-card { background-color: var(--card-bg); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
     .dish-name { color: var(--card-name-color); font-size: 1.25rem; font-weight: 700; margin: 0; }
     .dish-desc { color: var(--card-desc-color); font-size: 0.95rem; margin: 0; line-height: 1.4; }
     .dish-allerg { color: var(--card-allerg-color); font-size: 0.8rem; font-weight: 700; margin: 4px 0 0; }
-    .dish-price { color: var(--price-color); font-size: var(--price-size); font-weight: 800; text-align: var(--price-align); margin-top: 10px; }
+    .dish-price { color: var(--price-color); font-size: 1.4rem; font-weight: 800; text-align: right; margin-top: 10px; }
   </style>
 </head>
 <body>
 
   <header id="sticky-header">
     <div class="header-top">
-      <button id="btn-back" class="hidden" onclick="goBack()">&#8592; Indietro</button>
+      <button id="btn-back" class="hidden">&#8592; Indietro</button>
       <div class="header-titles">
         <h1 id="restaurant-name">Nome Ristorante</h1>
         <p id="restaurant-subtitle">Il nostro menu digitale</p>
@@ -132,20 +130,20 @@
     </div>
 
     <div id="filters-section" class="filters-container hidden">
-      <button class="filter-btn" data-filter="gf" onclick="toggleFilter(this)">Senza Glutine</button>
-      <button class="filter-btn" data-filter="veg" onclick="toggleFilter(this)">Vegetariano</button>
-      <button class="filter-btn" data-filter="na" onclick="toggleFilter(this)">Analcolico</button>
+      <button class="filter-btn" data-filter="gf">Senza Glutine</button>
+      <button class="filter-btn" data-filter="veg">Vegetariano</button>
+      <button class="filter-btn" data-filter="na">Analcolico</button>
     </div>
   </header>
 
   <main id="app-content">
     
-    <div id="macro-section" class="macro-container">
-      <a href="#" id="macro-cibo" class="macro-card" onclick="filtraPerMacro('CIBO'); return false;">Cibo</a>
-      <a href="#" id="macro-bevande" class="macro-card" onclick="filtraPerMacro('BEVANDA'); return false;">Bevande</a>
-    </div>
+    <div id="status-message" class="hidden" style="text-align: center; padding: 20px; color: #ff4444; font-weight: bold;"></div>
 
-    <div id="status-message" class="hidden" style="text-align: center; padding: 20px; font-weight: bold; color: #ff4444;"></div>
+    <div id="macro-section" class="macro-container">
+      <a href="#" id="btn-macro-cibo" class="macro-card">Cibo</a>
+      <a href="#" id="btn-macro-bevande" class="macro-card">Bevande</a>
+    </div>
 
     <div id="dishes-section" class="dishes-container">
       </div>
@@ -155,18 +153,47 @@
   <script>
     // --- CONFIGURAZIONE MASTER ---
     const APP_CONFIG = {
-      // INSERISCI QUI L'ID DEL TUO FOGLIO GOOGLE DI TEST (tra gli apici)
+      // 1. INSERISCI QUI IL TUO ID DI GOOGLE SHEETS
       DEFAULT_SHEET_ID: 'INSERISCI_QUI_IL_TUO_ID_VERO',
-      DEBUG_MODE: true
+      
+      // 2. CONTROLLO ALTEZZA BANDA INTESTAZIONE (Aumenta o diminuisci i px)
+      ALTEZZA_BANDA_ALTA: '20px'
     };
 
-    // --- VARIABILI GLOBALI ---
     let currentMacro = null;
-    const statusMessage = document.getElementById("status-message");
 
-    // --- AVVIO DELL'APP ---
+    // Avvio sicuro solo a caricamento pagina completato
     document.addEventListener("DOMContentLoaded", () => {
-      if (APP_CONFIG.DEBUG_MODE) console.log("App Inizializzata. Caricamento dati...");
+      
+      // Applica l'altezza della banda fissa dalla configurazione
+      document.documentElement.style.setProperty('--header-padding', APP_CONFIG.ALTEZZA_BANDA_ALTA);
+
+      // Collega i bottoni Macro in modo sicuro
+      document.getElementById("btn-macro-cibo").addEventListener("click", (e) => {
+        e.preventDefault();
+        filtraPerMacro("CIBO");
+      });
+
+      document.getElementById("btn-macro-bevande").addEventListener("click", (e) => {
+        e.preventDefault();
+        filtraPerMacro("BEVANDA");
+      });
+
+      // Collega il bottone Indietro
+      document.getElementById("btn-back").addEventListener("click", (e) => {
+        e.preventDefault();
+        goBack();
+      });
+
+      // Collega i bottoni Filtro
+      document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.addEventListener("click", function() {
+          this.classList.toggle("active");
+          applicaFiltriAttuali();
+        });
+      });
+
+      // Carica i dati
       caricaMenuDalCSV();
     });
 
@@ -176,7 +203,7 @@
       const sheetId = urlParams.get('id') || APP_CONFIG.DEFAULT_SHEET_ID;
 
       if (!sheetId || sheetId === 'INSERISCI_QUI_IL_TUO_ID_VERO') {
-        mostraErrore("Manca l'ID del database. Inseriscilo in APP_CONFIG.");
+        mostraErrore("Manca l'ID del database di Google Sheets nella configurazione.");
         return;
       }
 
@@ -189,14 +216,12 @@
         const csvTesto = await response.text();
         const menuDati = convertiCSVInJSON(csvTesto);
         
-        if (menuDati.length === 0) throw new Error("Il CSV è vuoto o formattato male.");
+        if (menuDati.length === 0) throw new Error("Il CSV è vuoto.");
 
         generaHTMLPiatti(menuDati);
-        if (APP_CONFIG.DEBUG_MODE) console.log("Menu caricato con successo!");
-        
       } catch (error) {
-        console.error("Errore fatale nel caricamento:", error);
-        mostraErrore("Impossibile caricare il menu. Controlla che il file Google Sheets sia pubblicato sul web.");
+        console.error("Errore:", error);
+        mostraErrore("Impossibile caricare il menu. Controlla che il file sia pubblicato sul web.");
       }
     }
 
@@ -216,9 +241,122 @@
         const allergeniTesto = piatto.Allerg_IT ? `Allergeni: ${piatto.Allerg_IT}` : "";
         const prezzoFormattato = piatto.Prezzo ? `€ ${piatto.Prezzo}` : "";
 
+        // Di base i piatti sono nascosti (classe hidden)
         const cardHTML = `
           <div class="dish-card hidden" 
                data-macro="${macroVal}" 
                data-gf="${isGF}" data-veg="${isVeg}" data-na="${isNA}">
             <h3 class="dish-name">${piatto.Nome_IT}</h3>
-            ${piatto.Desc_
+            ${piatto.Desc_IT ? `<p class="dish-desc">${piatto.Desc_IT}</p>` : ''}
+            ${allergeniTesto ? `<p class="dish-allerg">${allergeniTesto}</p>` : ''}
+            <div class="dish-price">${prezzoFormattato}</div>
+          </div>`;
+          
+        dishesSection.insertAdjacentHTML('beforeend', cardHTML);
+      });
+    }
+
+    // --- LOGICA DI NAVIGAZIONE ---
+    function filtraPerMacro(macroSelezionata) {
+      currentMacro = macroSelezionata.toUpperCase();
+
+      // Nascondo i pulsantoni Macro
+      document.getElementById("macro-section").classList.add("hidden");
+      
+      // Mostro i Filtri e il tasto Indietro
+      document.getElementById("filters-section").classList.remove("hidden");
+      document.getElementById("btn-back").classList.remove("hidden");
+
+      // Mostro i piatti corretti
+      const allDishes = document.querySelectorAll(".dish-card");
+      allDishes.forEach(dish => {
+        if (dish.getAttribute("data-macro") === currentMacro) {
+          dish.classList.remove("hidden");
+        } else {
+          dish.classList.add("hidden");
+        }
+      });
+
+      applicaFiltriAttuali();
+      window.scrollTo(0, 0);
+    }
+
+    function goBack() {
+      currentMacro = null;
+
+      // Mostro i pulsantoni Macro
+      document.getElementById("macro-section").classList.remove("hidden");
+      
+      // Nascondo i Filtri e il tasto Indietro
+      document.getElementById("filters-section").classList.add("hidden");
+      document.getElementById("btn-back").classList.add("hidden");
+
+      // Nascondo tutti i piatti
+      document.querySelectorAll(".dish-card").forEach(dish => {
+        dish.classList.add("hidden");
+      });
+
+      // Disattivo tutti i filtri
+      document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
+    }
+
+    function applicaFiltriAttuali() {
+      const activeFilters = Array.from(document.querySelectorAll(".filter-btn.active")).map(btn => btn.getAttribute("data-filter"));
+      const allDishes = document.querySelectorAll(".dish-card"); 
+
+      allDishes.forEach(dish => {
+        if (dish.getAttribute("data-macro") !== currentMacro) return;
+
+        let showDish = true;
+        if (activeFilters.length > 0) {
+          activeFilters.forEach(filter => {
+            if (dish.getAttribute(`data-${filter}`) !== "true") showDish = false;
+          });
+        }
+        
+        if (showDish) {
+          dish.classList.remove("hidden");
+        } else {
+          dish.classList.add("hidden");
+        }
+      });
+    }
+
+    // --- PARSER CSV ---
+    function convertiCSVInJSON(csvText) {
+      const righe = csvText.split(/\r\n|\n/);
+      if (righe.length < 2) return [];
+      const headers = parseCSVLine(righe[0]);
+      const risultato = [];
+
+      for (let i = 1; i < righe.length; i++) {
+        if (!righe[i].trim()) continue;
+        const valori = parseCSVLine(righe[i]);
+        const oggettoPiatto = {};
+        headers.forEach((header, index) => {
+          oggettoPiatto[header.trim()] = valori[index] ? valori[index].trim() : "";
+        });
+        risultato.push(oggettoPiatto);
+      }
+      return risultato;
+    }
+
+    function parseCSVLine(testo) {
+      let risultati = [''], i = 0, p = '', s = true;
+      for (let l = testo.length; i < l; i++) {
+        let c = testo[i];
+        if (c === '"') { s = !s; if (p === '"') { risultati[risultati.length - 1] += '"'; p = '-'; } else p = c; } 
+        else if (c === ',' && s) { c = ''; risultati.push(''); p = c; } 
+        else { risultati[risultati.length - 1] += c; p = c; }
+      }
+      return risultati;
+    }
+
+    function mostraErrore(messaggio) {
+      const msgDiv = document.getElementById("status-message");
+      msgDiv.textContent = messaggio;
+      msgDiv.classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
