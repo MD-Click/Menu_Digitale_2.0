@@ -2,193 +2,252 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Menu PWA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Menu PWA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link id="google-font" rel="stylesheet">
     <style>
-        :root { --main-font: 'sans-serif'; }
-        body { font-family: var(--main-font); transition: all 0.3s ease; }
-        .macro-card { 
-            height: var(--macro-h); 
-            background-size: cover; 
-            background-position: center; 
-            border-radius: 1.5rem;
-            display: flex; align-items: center; justify-content: center;
-            transition: transform 0.2s;
+        :root { --main-font: 'Inter', sans-serif; --loader-color: #000; }
+        body { 
+            font-family: var(--main-font); 
+            -webkit-tap-highlight-color: transparent;
+            scroll-behavior: smooth;
         }
-        .macro-card:active { transform: scale(0.95); }
-        .loader-spin { 
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--loader-color);
-            border-radius: 50%;
+        
+        /* Animazioni Fluide */
+        .page-transition { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Macro Cards */
+        .macro-card { 
+            height: var(--macro-h, 220px); 
+            border-radius: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            display: flex; align-items: flex-end;
+            padding: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .macro-card:active { transform: scale(0.96); }
+        .macro-overlay { 
+            position: absolute; inset: 0; 
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 60%, transparent 100%); 
+        }
+
+        /* Loader Personalizzato */
+        .loader-ring {
             width: 50px; height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--loader-color);
+            border-radius: 50%;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Tasto Back to Top */
+        #btn-top {
+            position: fixed; bottom: 30px; 
+            padding: 15px; border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: none; z-index: 90;
+        }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="antialiased">
 
-    <div id="loader" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white">
-        <div class="loader-spin mb-4"></div>
-        <p id="loader-text" class="text-sm font-medium uppercase tracking-widest">Sincronizzazione...</p>
+    <div id="loader" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white transition-opacity duration-500">
+        <div class="loader-ring mb-4"></div>
+        <p id="loader-text" class="text-xs font-bold uppercase tracking-[0.2em] opacity-50">Sincronizzazione</p>
     </div>
 
-    <header class="p-8 text-center w-full">
-        <div id="logo-area" class="flex justify-center mb-2"></div>
-        <div id="subtitle-area" class="font-medium"></div>
+    <header class="pt-10 pb-6 px-6 text-center">
+        <div id="logo-container" class="flex justify-center mb-4 page-transition"></div>
+        <p id="app-subtitle" class="font-medium tracking-wide"></p>
     </header>
 
-    <nav id="nav-bar" class="px-6 mb-4 hidden">
-        <button onclick="renderLevel1()" class="flex items-center text-sm font-bold opacity-70 uppercase">
-            <span class="mr-2">←</span> Menu Principale
+    <nav id="nav-bar" class="px-6 mb-6 hidden">
+        <button onclick="renderLevel1()" class="flex items-center text-xs font-black uppercase opacity-40 hover:opacity-100 transition-opacity">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/></svg>
+            Menu Principale
         </button>
     </nav>
 
-    <main id="app-content" class="max-w-xl mx-auto px-6 pb-20 space-y-4">
+    <main id="app-content" class="max-w-2xl mx-auto px-6 pb-24 space-y-6">
         </main>
 
+    <button id="btn-top" onclick="window.scrollTo(0,0)">
+        <svg id="btn-top-svg" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+    </button>
+
     <script>
-        const params = new URLSearchParams(window.location.search);
-        const sid = params.get('id');
-        let cfg = {};
-        let data = [];
+        const urlParams = new URLSearchParams(window.location.search);
+        const sheetId = urlParams.get('id');
+        let config = {};
+        let menu = [];
 
-        async function startApp() {
-            if(!sid) return alert("Inserisci ?id=ID_FOGLIO nell'URL");
+        // Parser CSV avanzato che rispetta le virgolette e i testi lunghi
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/);
+            return lines.map(line => {
+                const result = [];
+                let cell = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    let char = line[i];
+                    if (char === '"' && line[i+1] === '"') { cell += '"'; i++; }
+                    else if (char === '"') { inQuotes = !inQuotes; }
+                    else if (char === ',' && !inQuotes) { result.push(cell.trim()); cell = ''; }
+                    else { cell += char; }
+                }
+                result.push(cell.trim());
+                return result;
+            });
+        }
+
+        async function init() {
+            if (!sheetId) { document.body.innerHTML = "Errore: Inserisci l'ID del foglio nell'URL."; return; }
             
-            await fetchData();
-            applyStyles();
-            renderLevel1(); // Avvio forzato a 3 livelli
-
-            setTimeout(() => {
-                document.getElementById('loader').style.opacity = '0';
-                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
-            }, parseInt(cfg.Loader_Time) || 1500);
-        }
-
-        async function fetchData() {
-            const base = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv`;
             try {
-                const [r1, r2] = await Promise.all([
-                    fetch(`${base}&sheet=Config`),
-                    fetch(`${base}&sheet=Menu`)
+                const [resConf, resMenu] = await Promise.all([
+                    fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Config`),
+                    fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Menu`)
                 ]);
-                const cText = await r1.text();
-                const mText = await r2.text();
+                
+                const csvConf = parseCSV(await resConf.text());
+                csvConf.slice(1).forEach(row => { if(row[0]) config[row[0]] = row[1]?.replace(/"/g, ''); });
 
-                // Parse Config
-                cText.split('\n').forEach(line => {
-                    const parts = line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
-                    if(parts[0]) cfg[parts[0].trim()] = parts[1]?.replace(/"/g, '').trim();
+                const csvMenu = parseCSV(await resMenu.text());
+                const headers = csvMenu[0];
+                menu = csvMenu.slice(1).filter(r => r[headers.indexOf('Attivo')] === 'SI').map(row => {
+                    let obj = {};
+                    headers.forEach((h, i) => obj[h] = row[i]);
+                    return obj;
                 });
 
-                // Parse Menu
-                const rows = mText.split('\n').map(l => l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/"/g, '')));
-                const head = rows[0].map(h => h.trim());
-                data = rows.slice(1).map(row => {
-                    let o = {};
-                    head.forEach((h, i) => o[h] = row[i]);
-                    return o;
-                });
-            } catch(e) { console.error("Errore caricamento dati"); }
+                applyGlobalStyles();
+                renderLevel1();
+
+                setTimeout(() => {
+                    const loader = document.getElementById('loader');
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.style.display = 'none', 500);
+                }, parseInt(config.Loader_Time) || 1000);
+
+            } catch (err) { console.error(err); }
         }
 
-        function applyStyles() {
+        function applyGlobalStyles() {
             const root = document.documentElement;
             
-            // Font e Background
-            if(cfg.Font_Main) {
-                document.getElementById('google-font').href = `https://fonts.googleapis.com/css2?family=${cfg.Font_Main.replace(/ /g, '+')}:wght@400;700&display=swap`;
-                document.body.style.setProperty('--main-font', cfg.Font_Main);
+            // Fonts
+            if(config.Font_Main) {
+                document.getElementById('google-font').href = `https://fonts.googleapis.com/css2?family=${config.Font_Main.replace(/ /g, '+')}:wght@400;600;800&display=swap`;
+                root.style.setProperty('--main-font', `'${config.Font_Main}', sans-serif`);
             }
-            
-            if(cfg.App_Bg_Type === 'color') document.body.style.backgroundColor = cfg.App_Bg_Color;
+
+            // Sfondo
+            if(config.App_Bg_Type === 'color') document.body.style.backgroundColor = config.App_Bg_Color;
             else {
-                document.body.style.backgroundImage = `url(${cfg.App_Bg_Image})`;
-                document.body.style.backgroundSize = cfg.App_Bg_Size;
-                document.body.style.backgroundPosition = cfg.App_Bg_Pos;
+                document.body.style.background = `url(${config.App_Bg_Image}) ${config.App_Bg_Pos} / ${config.App_Bg_Size} fixed no-repeat`;
             }
 
-            // Logo & Sottotitolo
-            const logoArea = document.getElementById('logo-area');
-            if(cfg.Logo_Type === 'IMAGE') {
-                logoArea.innerHTML = `<img src="${cfg.Logo_URL}" style="width:${cfg.Logo_Img_Size}">`;
+            // Logo
+            const logoCont = document.getElementById('logo-container');
+            if(config.Logo_Type === 'IMAGE') {
+                logoCont.innerHTML = `<img src="${config.Logo_URL}" style="width: ${config.Logo_Img_Size}; object-fit: contain;">`;
             } else {
-                logoArea.innerHTML = `<h1 style="color:${cfg.Logo_Text_Color}; font-size:${cfg.Logo_Text_Size}; font-weight:bold">${cfg.Logo_Text}</h1>`;
+                logoCont.innerHTML = `<h1 style="color: ${config.Logo_Text_Color}; font-size: ${config.Logo_Text_Size}; font-weight: 800;">${config.Logo_Text}</h1>`;
             }
-            
-            const subArea = document.getElementById('subtitle-area');
-            subArea.innerText = cfg.App_Subtitle;
-            subArea.style.color = cfg.Subtitle_Color;
-            subArea.style.fontSize = cfg.Subtitle_Size;
 
-            // Variabili per Macro e Loader
-            root.style.setProperty('--loader-color', cfg.Loader_Time_Color);
-            root.style.setProperty('--macro-h', cfg.Macro_Height);
+            // Sottotitolo
+            const sub = document.getElementById('app-subtitle');
+            sub.innerText = config.App_Subtitle;
+            sub.style.color = config.Subtitle_Color;
+            sub.style.fontSize = config.Subtitle_Size;
+
+            // Variabili CSS
+            root.style.setProperty('--loader-color', config.Loader_Time_Color);
+            root.style.setProperty('--macro-h', config.Macro_Height);
+
+            // Tasto Top
+            const btnTop = document.getElementById('btn-top');
+            btnTop.style.backgroundColor = config.Btn_Top_Bg_Color || '#fff';
+            document.getElementById('btn-top-svg').style.color = config.Btn_Top_Simbol_Color;
+            window.onscroll = () => { btnTop.style.display = window.scrollY > 400 ? 'block' : 'none'; };
         }
 
         // --- LIVELLO 1: MACRO ---
         function renderLevel1() {
             document.getElementById('nav-bar').classList.add('hidden');
             const cont = document.getElementById('app-content');
+            
             cont.innerHTML = `
-                <div onclick="renderLevel2('CIBO')" class="macro-card shadow-xl cursor-pointer" style="background-image: linear-gradient(to top, rgba(0,0,0,0.7), transparent), url(${cfg.Macro_Img_Cibo})">
-                    <span style="color:${cfg.Macro_Text_Color}; font-size:${cfg.Macro_Text_Size}" class="font-bold uppercase tracking-wider">Cibo</span>
-                </div>
-                <div onclick="renderLevel2('BEVANDE')" class="macro-card shadow-xl cursor-pointer" style="background-image: linear-gradient(to top, rgba(0,0,0,0.7), transparent), url(${cfg.Macro_Img_Bevande})">
-                    <span style="color:${cfg.Macro_Text_Color}; font-size:${cfg.Macro_Text_Size}" class="font-bold uppercase tracking-wider">Bevande</span>
-                </div>
-            `;
+                <div class="grid gap-6 page-transition">
+                    <div onclick="renderLevel2('CIBO')" class="macro-card group cursor-pointer" style="background: url(${config.Macro_Img_Cibo}) center/cover">
+                        <div class="macro-overlay group-hover:opacity-90 transition-opacity"></div>
+                        <span class="relative z-10 font-black uppercase tracking-tighter" style="color: ${config.Macro_Text_Color}; font-size: ${config.Macro_Text_Size}">${config.Macro_Label_Cibo || 'Cibo'}</span>
+                    </div>
+                    <div onclick="renderLevel2('BEVANDE')" class="macro-card group cursor-pointer" style="background: url(${config.Macro_Img_Bevande}) center/cover">
+                        <div class="macro-overlay group-hover:opacity-90 transition-opacity"></div>
+                        <span class="relative z-10 font-black uppercase tracking-tighter" style="color: ${config.Macro_Text_Color}; font-size: ${config.Macro_Text_Size}">${config.Macro_Label_Bevande || 'Bevande'}</span>
+                    </div>
+                </div>`;
         }
 
         // --- LIVELLO 2: CATEGORIE ---
         function renderLevel2(macro) {
             document.getElementById('nav-bar').classList.remove('hidden');
             const cont = document.getElementById('app-content');
-            const cats = [...new Set(data.filter(i => i.Macro === macro).map(i => i.Categoria))];
+            const categories = [...new Set(menu.filter(i => i.Macro === macro).map(i => i.Categoria))];
             
-            cont.innerHTML = `<h2 class="text-center font-bold text-xl mb-4 uppercase tracking-widest opacity-60">${macro}</h2>`;
-            cats.forEach(c => {
+            let gridClass = config.Cat_Layout === 'GRID' ? 'grid-cols-2' : 'grid-cols-1';
+            
+            cont.innerHTML = `<div class="grid ${gridClass} gap-4 page-transition">`;
+            categories.forEach(cat => {
+                const catData = menu.find(i => i.Categoria === cat);
                 cont.innerHTML += `
-                    <div onclick="renderLevel3('${c}', '${macro}')" class="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border flex justify-between items-center cursor-pointer active:scale-95 transition-all">
-                        <span class="text-lg font-bold" style="color:${cfg.Text_CatTitle_Color}">${c}</span>
-                        <span class="opacity-30">❯</span>
-                    </div>
-                `;
+                    <div onclick="renderLevel3('${cat}', '${macro}')" class="bg-white/90 backdrop-blur shadow-sm border border-black/5 p-5 rounded-2xl flex flex-col justify-end min-h-[120px] cursor-pointer active:bg-gray-50 transition-all">
+                        ${config.Cat_Img_Show === 'SI' && catData.Cat_Img ? `<img src="${catData.Cat_Img}" class="w-12 h-12 mb-3 rounded-lg object-cover">` : ''}
+                        <span class="font-bold text-lg leading-tight" style="color: ${config.Text_CatTitle_Color}">${cat}</span>
+                    </div>`;
             });
+            cont.innerHTML += `</div>`;
+            window.scrollTo(0,0);
         }
 
         // --- LIVELLO 3: PRODOTTI ---
         function renderLevel3(cat, macro) {
             const cont = document.getElementById('app-content');
-            const items = data.filter(i => i.Categoria === cat && i.Attivo === 'SI');
+            const items = menu.filter(i => i.Categoria === cat);
             
-            cont.innerHTML = `
-                <div class="flex items-center mb-6">
-                    <button onclick="renderLevel2('${macro}')" class="bg-black/5 p-2 rounded-full mr-3 text-lg">←</button>
-                    <h2 class="text-xl font-bold uppercase" style="color:${cfg.Text_CatTitle_Color}">${cat}</h2>
-                </div>
-            `;
+            cont.innerHTML = `<div class="page-transition space-y-4">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-2xl font-black uppercase tracking-tight" style="color: ${config.Text_CatTitle_Color}">${cat}</h2>
+                    <button onclick="renderLevel2('${macro}')" class="text-xs font-bold opacity-50 uppercase">Chiudi</button>
+                </div>`;
             
             items.forEach(i => {
-                const badge = i['Senza Glutine'] === 'SI' ? '<span class="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">NO GLUTEN</span>' : '';
+                const photo = (i.Foto_URL && i.Foto_URL !== "https://") ? `<img src="${i.Foto_URL}" class="w-full h-48 object-cover rounded-2xl mb-4 shadow-sm">` : '';
+                const allergens = i.Allerg_IT ? `<p class="mt-3 text-[10px] font-bold uppercase tracking-wider text-red-500/60 border-t pt-3">Allergeni: ${i.Allerg_IT}</p>` : '';
+                const glutenFree = i['Senza Glutine'] === 'SI' ? `<span class="bg-amber-100 text-amber-700 text-[10px] font-black px-2 py-1 rounded-md ml-2">NO GLUTEN</span>` : '';
+
                 cont.innerHTML += `
-                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                        ${i.Foto_URL && i.Foto_URL !== 'https://' ? `<img src="${i.Foto_URL}" class="w-full h-40 object-cover rounded-xl mb-4">` : ''}
-                        <div class="flex justify-between items-start mb-1">
-                            <h3 class="font-bold text-lg text-gray-800">${i.Nome_IT} ${badge}</h3>
-                            <span class="font-bold text-lg px-3 py-1 bg-gray-50 rounded-lg">${i.Prezzo}€</span>
+                    <div class="bg-white p-5 rounded-[1.8rem] border border-gray-100 shadow-sm">
+                        ${photo}
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-extrabold text-xl text-gray-900">${i.Nome_IT}${glutenFree}</h3>
+                            <span class="font-black text-lg bg-gray-900 text-white px-3 py-1 rounded-xl">${i.Prezzo}€</span>
                         </div>
-                        <p class="text-gray-500 text-sm leading-relaxed">${i.Desc_IT}</p>
-                        ${i.Allerg_IT ? `<p class="mt-3 text-[10px] uppercase font-bold text-red-400 tracking-tighter">Allergeni: ${i.Allerg_IT}</p>` : ''}
-                    </div>
-                `;
+                        <p class="text-gray-500 text-sm leading-relaxed font-medium">${i.Desc_IT}</p>
+                        ${allergens}
+                    </div>`;
             });
+            cont.innerHTML += `</div>`;
+            window.scrollTo(0,0);
         }
 
-        window.onload = startApp;
+        window.onload = init;
     </script>
 </body>
 </html>
