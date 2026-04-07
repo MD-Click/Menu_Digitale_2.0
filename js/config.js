@@ -1,38 +1,83 @@
-// /js/config.js
+// Funzione per caricare i Google Fonts dinamicamente
+function loadGoogleFont(fontName) {
+    if (!fontName) return;
+    const fontId = 'font-' + fontName.replace(/\s+/g, '-').toLowerCase();
+    
+    if (!document.getElementById(fontId)) {
+        const link = document.createElement('link');
+        link.id = fontId;
+        link.rel = 'stylesheet';
+        link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@400;600;700&display=swap`;
+        document.head.appendChild(link);
+    }
+}
 
-// Creiamo un oggetto globale per salvare lo stato dell'app
 window.AppEngine = {
     state: {
-        layoutMode: 'MACRO', // Valore di default
+        layoutMode: 'MACRO',
     },
 
-    // Funzione che riceve i dati del CSV formattati come dizionario { Parametro: Valore }
     applyEngineSettings: function(configData) {
-        
-        // 1. IMPOSTAZIONE DEL LAYOUT
-        // Leggiamo la riga "Layout_Mode" dal CSV. 
-        // Se non c'è, usiamo 'MACRO' come fallback di sicurezza.
+        const root = document.documentElement;
+
+        // 1. MOTORE LAYOUT E SFONDO
         this.state.layoutMode = configData['Layout_Mode'] || 'MACRO';
-        console.log("Motore avviato con Layout Mode:", this.state.layoutMode);
-
-        // 2. GESTIONE DELLO SFONDO (BACKGROUND)
-        const root = document.documentElement; // Punta al tag :root dell'HTML
+        
         const bgType = configData['App_Bg_Type'];
-
         if (bgType === 'COLOR') {
-            // Impostiamo il colore (o gradiente) e disattiviamo l'immagine
-            // Se metti un gradiente nel CSV, javascript e CSS lo leggeranno nativamente
             root.style.setProperty('--app-bg-color', configData['App_Bg_Color']);
             root.style.setProperty('--app-bg-image', 'none');
-        
         } else if (bgType === 'IMAGE') {
-            // Impostiamo l'URL dell'immagine e le sue regole
             root.style.setProperty('--app-bg-image', `url('${configData['App_Bg_Image']}')`);
             root.style.setProperty('--app-bg-position', configData['App_Bg_Image_Pos']);
             root.style.setProperty('--app-bg-size', configData['App_Bg_Image_Size']);
-            
-            // Usiamo il colore come "fallback" mentre l'immagine si carica
             root.style.setProperty('--app-bg-color', configData['App_Bg_Color']);
+        }
+
+        // 2. BRAND E HEADER
+        loadGoogleFont(configData['Font_Main']);
+        loadGoogleFont(configData['Subtitle_Font']);
+        loadGoogleFont(configData['Iva_Text_Font']);
+
+        root.style.setProperty('--font-main', `'${configData['Font_Main']}', sans-serif`);
+        root.style.setProperty('--subtitle-font', `'${configData['Subtitle_Font']}', sans-serif`);
+        root.style.setProperty('--subtitle-color', configData['Subtitle_Color']);
+        root.style.setProperty('--subtitle-size', configData['Subtitle_Size']);
+        root.style.setProperty('--subtitle-margin', configData['Subtitle_Margin']);
+        
+        root.style.setProperty('--iva-font', `'${configData['Iva_Text_Font']}', sans-serif`);
+        root.style.setProperty('--iva-color', configData['Iva_Text_Color']);
+        root.style.setProperty('--iva-size', configData['Iva_Text_Size']);
+
+        const logoContainer = document.getElementById('logo-container');
+        logoContainer.innerHTML = ''; // Pulizia preventiva
+
+        if (configData['Logo_Type'] && configData['Logo_Type'].toUpperCase() === 'IMAGE') {
+            root.style.setProperty('--logo-img-size', configData['Logo_Img_Size']);
+            logoContainer.innerHTML = `<img src="${configData['Logo_URL']}" alt="Logo Menu" style="width: var(--logo-img-size); max-width: 100%; height: auto;">`;
+        } else {
+            root.style.setProperty('--logo-text-color', configData['Logo_Text_Color']);
+            root.style.setProperty('--logo-text-size', configData['Logo_Text_Size']);
+            logoContainer.innerHTML = `<h1 class="logo-text-element">${configData['Logo_Text']}</h1>`;
+        }
+
+        if (configData['App_Subtitle']) {
+            const subtitleEl = document.createElement('div');
+            subtitleEl.className = 'subtitle-element';
+            subtitleEl.innerText = configData['App_Subtitle'];
+            subtitleEl.style.textAlign = configData['Subtitle_Align'] || 'center';
+            logoContainer.appendChild(subtitleEl);
+        }
+
+        // 3. IVA / PIÈ DI PAGINA
+        const footerEl = document.getElementById('app-footer');
+        if (configData['IVA_Type'] && configData['IVA_Type'].toUpperCase() === 'SI') {
+            footerEl.innerText = configData['IVA_Text'];
+            const alignParts = (configData['Iva_Text_Align'] || 'center').split(',');
+            footerEl.style.textAlign = alignParts[0].trim();
+            footerEl.classList.remove('hidden');
+        } else {
+            footerEl.classList.add('hidden');
         }
     }
 };
