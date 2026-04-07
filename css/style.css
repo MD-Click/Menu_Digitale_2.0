@@ -1,0 +1,33 @@
+/* /css/style.css */
+
+:root {
+    /* Variabili di default, verranno sovrascritte dal config.csv */
+    --app-bg-color: #ffffff;
+    --app-bg-image: none;
+    --app-bg-position: center bottom;
+    --app-bg-size: cover;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif; /* Poi renderemo dinamico anche questo */
+    
+    /* Applichiamo le variabili al background del body */
+    background-color: var(--app-bg-color);
+    background-image: var(--app-bg-image);
+    background-position: var(--app-bg-position);
+    background-size: var(--app-bg-size);
+    background-repeat: no-repeat;
+    
+    /* background-attachment: fixed è vitale su mobile per non far scrollare lo sfondo insieme ai piatti */
+    background-attachment: fixed; 
+    
+    /* Altezza minima per coprire sempre lo schermo */
+    min-height: 100vh;
+}
+
+/* Nascondiamo elementi non ancora pronti */
+.hidden {
+    display: none !important;
+}
