@@ -11,14 +11,14 @@
 
   <header id="sticky-header">
     <div class="header-top">
-      <button id="btn-back" class="hidden" onclick="goBack()">&#8592;</button>
+      <button id="btn-back" class="hidden">&#8592;</button>
       <div class="header-titles">
         <h1 id="restaurant-name">Nome Ristorante</h1>
         <p id="restaurant-subtitle">Il nostro menu digitale</p>
       </div>
     </div>
 
-    <div id="filters-section" class="filters-container">
+    <div id="filters-section" class="filters-container hidden">
       <button class="filter-btn" data-filter="gf">Senza Glutine</button>
       <button class="filter-btn" data-filter="veg">Vegetariano</button>
       <button class="filter-btn" data-filter="na">Analcolico</button>
@@ -28,8 +28,8 @@
   <main id="app-content">
     
     <div id="macro-section" class="macro-container">
-      <a href="#" id="macro-cibo" class="macro-card" onclick="filtraPerMacro('CIBO'); return false;">Cibo</a>
-      <a href="#" id="macro-bevande" class="macro-card" onclick="filtraPerMacro('BEVANDA'); return false;">Bevande</a>
+      <a href="#" id="macro-cibo" class="macro-card">Cibo</a>
+      <a href="#" id="macro-bevande" class="macro-card">Bevande</a>
     </div>
 
     <div id="dishes-section" class="dishes-container">
