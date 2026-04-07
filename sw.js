@@ -1,12 +1,20 @@
-const CACHE_NAME = 'smart-menu-v2';
+const CACHE_NAME = 'menu-pwa-v1';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/style.css',
+  '/app.js',
+  '/manifest.json'
+];
 
-self.addEventListener('install', (e) => self.skipWaiting());
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+  );
+});
 
-self.addEventListener('fetch', (e) => {
-  // Se la richiesta è per Google Sheets, bypassa la cache totalmente
-  if (e.request.url.includes('google.com') || e.request.url.includes('tqx=out:csv')) {
-    return e.respondWith(fetch(e.request));
-  }
-  // Altrimenti usa la rete e aggiorna
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request).then(response => response || fetch(event.request))
+  );
 });
