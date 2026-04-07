@@ -5,45 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
-    <title>Smart Menu PWA</title>
+    <title>Smart Menu Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <style id="dynamic-styles">
-        /* Stili Base di Sicurezza */
-        :root { --p: #000; --bg: #f8f9fa; }
+    <style>
+        :root { --p: #000; --bg: #f8f9fa; --f-main: 'Arial', sans-serif; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin:0; overflow-x: hidden; min-height: 100vh; transition: background 0.3s; }
-        #loader { position:fixed; inset:0; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; }
-        .spin { width:40px; height:40px; border:4px solid #f3f3f3; border-radius:50%; animation: s 1s linear infinite; }
-        @keyframes s { 100% { transform:rotate(360deg); } }
-        header { padding: 20px; text-align:center; position:sticky; top:0; z-index:1000; transition: 0.3s; }
-        .container { padding:15px; max-width:700px; margin:auto; }
-        .grid { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
-        .list { display:flex; flex-direction:column; gap:12px; }
-        .ani { animation: f 0.4s ease-out; }
-        @keyframes f { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+        body { margin:0; font-family: var(--f-main); background: var(--bg); color: #222; min-height: 100vh; }
         
-        /* Classi dinamiche per le card */
-        .card-m { position:relative; border-radius:20px; overflow:hidden; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 8px 20px rgba(0,0,0,0.1); }
-        .card-m img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
-        .card-m .ov { position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.7), transparent); z-index:2; }
-        .card-m span { position:relative; z-index:3; text-transform:uppercase; font-weight:900; text-align:center; padding:10px; }
+        /* Loader */
+        #loader { position:fixed; inset:0; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:9999; transition: 0.5s; }
+        .spin { width:45px; height:45px; border:4px solid #f3f3f3; border-radius:50%; animation: s 1s linear infinite; }
+        @keyframes s { 100% { transform:rotate(360deg); } }
 
-        .dish-card { background:#fff; border-radius:18px; padding:12px; display:flex; margin-bottom:12px; box-shadow:0 2px 10px rgba(0,0,0,0.05); align-items:center; border:1px solid #eee; }
-        .dish-img { width:85px; height:85px; object-fit:cover; border-radius:12px; margin-right:15px; }
-        .btn-back { display:inline-block; padding:10px 20px; background:#000; color:#fff; border-radius:50px; margin-bottom:20px; cursor:pointer; font-size:12px; font-weight:bold; }
+        /* Header */
+        header { padding: 30px 20px; text-align:center; position:sticky; top:0; z-index:1000; background:rgba(255,255,255,0.8); backdrop-filter:blur(10px); }
+        #logo-box img { max-width: 100%; height: auto; cursor:pointer; }
+        
+        .container { padding:15px; max-width:800px; margin:auto; }
+
+        /* Layouts */
+        .grid { display:grid; grid-template-columns: 1fr 1fr; gap:15px; }
+        .list { display:flex; flex-direction:column; gap:15px; }
+
+        /* Card 3 Livelli */
+        .card-main { 
+            position:relative; border-radius:20px; overflow:hidden; display:flex; 
+            align-items:center; justify-content:center; cursor:pointer; 
+            box-shadow:0 10px 25px rgba(0,0,0,0.1); transition: 0.2s;
+        }
+        .card-main:active { transform: scale(0.96); }
+        .card-main img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+        .card-main .ov { position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index:2; }
+        .card-main span { position:relative; z-index:3; text-transform:uppercase; font-weight:900; text-align:center; padding:10px; }
+
+        /* Dish Detail */
+        .dish-card { background:#fff; border-radius:18px; padding:15px; display:flex; margin-bottom:15px; border:1px solid #eee; align-items:center; box-shadow:0 4px 12px rgba(0,0,0,0.03); }
+        .dish-img { width:90px; height:90px; object-fit:cover; border-radius:14px; margin-right:15px; }
+        .dish-info { flex:1; }
+        .dish-name { font-weight:800; font-size:1.1rem; margin-bottom:4px; }
+        .dish-desc { font-size:0.85rem; color:#666; line-height:1.4; }
+        .dish-price { font-weight:900; color:var(--p); margin-top:8px; font-size:1.2rem; }
+
+        .back-nav { display:inline-flex; align-items:center; padding:10px 22px; background:#000; color:#fff; border-radius:50px; margin-bottom:20px; cursor:pointer; font-size:12px; font-weight:bold; text-transform:uppercase; }
+        
+        .ani { animation: slideUp 0.4s ease-out forwards; }
+        @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
     </style>
 </head>
 <body>
 
-<div id="loader"><div class="spin"></div><p id="l-msg">CARICAMENTO...</p></div>
+<div id="loader">
+    <div class="spin" id="spin-color"></div>
+    <p id="l-msg" style="margin-top:20px; font-weight:bold; font-size:12px;">CONNESSIONE AL DATABASE...</p>
+</div>
 
-<header id="main-header">
+<header id="h-main">
     <div id="logo-box"></div>
     <div id="sub-box"></div>
 </header>
 
 <div class="container" id="view"></div>
 
+<script src="app.js"></script>
 <script>
     const SID = new URLSearchParams(window.location.search).get('id');
     const LANG = navigator.language.split('-')[0].toLowerCase();
@@ -51,38 +74,41 @@
 
     const cl = (s) => s ? s.toString().toLowerCase().trim().replace(/[^a-z0-9]/g, '') : '';
 
-    // Parser professionale per gestire virgole e virgolette di Excel
+    // Parser CSV "Guru Edition" - Gestisce virgolette, virgole e ritorni a capo interni
     function parseCSV(text) {
         const rows = [];
-        let curr = '', inQuotes = false;
+        let row = [], col = '', inQuotes = false;
         for (let i = 0; i < text.length; i++) {
             let char = text[i], next = text[i+1];
-            if (char === '"' && inQuotes && next === '"') { curr += '"'; i++; }
+            if (inQuotes && char === '"' && next === '"') { col += '"'; i++; }
             else if (char === '"') { inQuotes = !inQuotes; }
-            else if (char === ',' && !inQuotes) { rows.push(curr); curr = ''; }
-            else if (char === '\n' && !inQuotes) { rows.push(curr); curr = ''; }
-            else { curr += char; }
+            else if (char === ',' && !inQuotes) { row.push(col.trim()); col = ''; }
+            else if (char === '\n' && !inQuotes) { row.push(col.trim()); rows.push(row); row = []; col = ''; }
+            else { col += char; }
         }
-        return text.split('\n').map(l => l.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
+        if (col || row.length) { row.push(col.trim()); rows.push(row); }
+        return rows;
     }
 
     async function init() {
-        if(!SID) { document.getElementById('l-msg').innerText = "ID MANCANTE"; return; }
+        if(!SID) { document.getElementById('l-msg').innerText = "ERRORE: ID NON TROVATO NELL'URL"; return; }
         try {
-            // Cache Buster v=${Date.now()} per forzare il refresh
-            const [resC, resM] = await Promise.all([
-                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Config&v=${Date.now()}`).then(r => r.text()),
-                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Menu&v=${Date.now()}`).then(r => r.text())
+            const ts = Date.now();
+            const [rC, rM] = await Promise.all([
+                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Config&v=${ts}`),
+                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Menu&v=${ts}`)
             ]);
 
-            const csvC = parseCSV(resC);
-            csvC.forEach(r => { if(r.length >= 2) cfg[cl(r[0])] = r[1]; });
+            if (!rC.ok || !rM.ok) throw new Error("Google Sheets non risponde");
 
-            const csvM = parseCSV(resM);
-            const headers = csvM[0].map(h => cl(h));
+            const csvC = parseCSV(await rC.text());
+            csvC.forEach(r => { if(r[0] && r[1]) cfg[cl(r[0])] = r[1]; });
+
+            const csvM = parseCSV(await rM.text());
+            const heads = csvM[0].map(h => cl(h));
             db = csvM.slice(1).map(row => {
                 let obj = {};
-                headers.forEach((h, i) => obj[h] = row[i]);
+                heads.forEach((h, i) => obj[h] = row[i] || '');
                 return obj;
             }).filter(i => cl(i.attivo) === 'si');
 
@@ -90,45 +116,44 @@
             render();
 
             setTimeout(() => {
-                const l = document.getElementById('loader');
-                l.style.opacity = '0';
-                setTimeout(() => l.remove(), 500);
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
             }, parseInt(cfg.loadertime) || 1000);
 
-        } catch (e) { document.getElementById('l-msg').innerText = "CONTROLLA IL FOGLIO GOOGLE"; }
+        } catch (e) {
+            console.error(e);
+            document.getElementById('l-msg').innerText = "ERRORE DATI: ASSICURATI CHE IL FOGLIO SIA PUBBLICO";
+        }
     }
 
     function applyConfig() {
         const s = document.body.style;
-        const h = document.getElementById('main-header');
-        
-        // Sfondo
-        if(cl(cfg.appbgtype) === 'image') {
-            document.body.style.backgroundImage = `url('${cfg.appbgimage}')`;
-            document.body.style.backgroundSize = cfg.appbgsize || 'cover';
-            document.body.style.backgroundPosition = cfg.appbgpos || 'center';
-            document.body.style.backgroundAttachment = 'fixed';
+        // Background
+        if(cl(cfg.appbgtype) === 'image' && cfg.appbgimage) {
+            s.backgroundImage = `url('${cfg.appbgimage}')`;
+            s.backgroundSize = cfg.appbgsize || 'cover';
+            s.backgroundPosition = cfg.appbgpos || 'center';
+            s.backgroundAttachment = 'fixed';
         } else {
-            document.body.style.backgroundColor = cfg.appbgcolor || '#f8f9fa';
+            s.backgroundColor = cfg.appbgcolor || '#f8f9fa';
         }
+        
+        // Font
+        if(cfg.fontmain) document.documentElement.style.setProperty('--f-main', cfg.fontmain);
+        document.documentElement.style.setProperty('--p', cfg.loadertimecolor || '#000');
 
-        // Font e Colori
-        if(cfg.fontmain) document.body.style.fontFamily = `'${cfg.fontmain}', sans-serif`;
-        document.querySelector('.spin').style.borderTopColor = cfg.loadertimecolor || '#000';
-
-        // Logo
+        // Logo & Header
         const lb = document.getElementById('logo-box');
         if(cl(cfg.logotype) === 'image') {
-            lb.innerHTML = `<img src="${cfg.logourl}" style="max-width:${cfg.logoimgsize || '200px'}; cursor:pointer" onclick="nav(null,null)">`;
+            lb.innerHTML = `<img src="${cfg.logourl}" style="height:${cfg.logoimgsize || '80px'}" onclick="nav(null,null)">`;
         } else {
-            lb.innerHTML = `<h1 style="color:${cfg.logotextcolor}; font-size:${cfg.logotextsize}; margin:0; cursor:pointer" onclick="nav(null,null)">${cfg.logotext || 'MENU'}</h1>`;
+            lb.innerHTML = `<h1 onclick="nav(null,null)" style="color:${cfg.logotextcolor}; font-size:${cfg.logotextsize}">${cfg.logotext || 'MENU'}</h1>`;
         }
 
-        // Sottotitolo
         const sb = document.getElementById('sub-box');
         sb.innerText = cfg.appsubtitle || '';
-        sb.style.color = cfg.subtitlecolor || '#666';
-        sb.style.fontSize = cfg.subtitlesize || '1rem';
+        sb.style.cssText = `color:${cfg.subtitlecolor}; font-size:${cfg.subtitlesize}; font-family:${cfg.subtitlefont || 'inherit'}`;
     }
 
     function render() {
@@ -137,60 +162,58 @@
 
         if (!state.m) {
             // LIVELLO 1: MACRO
-            const ms = [...new Set(db.map(i => i.macro).filter(Boolean))];
-            let html = `<div class="${cl(cfg.macrolayout) === 'grid' ? 'grid' : 'list'} ani">`;
-            ms.forEach(m => {
-                const img = cfg['macroimg' + cl(m)] || db.find(i => i.macro === m)?.fotourl || '';
-                html += `
-                <div class="card-m" style="height:${cfg.macroheight || '200px'}" onclick="nav('${m}', null)">
+            const macros = [...new Set(db.map(i => i.macro).filter(Boolean))];
+            let h = `<div class="${cl(cfg.macrolayout) === 'grid' ? 'grid' : 'list'} ani">`;
+            macros.forEach(m => {
+                // Cerca Macro_Img_NomeMacro nel config
+                const img = cfg['macroimg' + cl(m)] || db.find(i => i.macro === m && i.fotourl)?.fotourl || '';
+                h += `
+                <div class="card-main" style="height:${cfg.macroheight || '220px'}" onclick="nav('${m}', null)">
                     <img src="${img}">
                     <div class="ov"></div>
-                    <span style="color:${cfg.macrotextcolor}; font-size:${cfg.macrotextsize}">${m}</span>
+                    <span style="color:${cfg.macrotextcolor || '#fff'}; font-size:${cfg.macrotextsize || '2rem'}">${m}</span>
                 </div>`;
             });
-            out.innerHTML = html + '</div>';
+            out.innerHTML = h + '</div>';
         } 
         else if (!state.c) {
             // LIVELLO 2: CATEGORIE
             const cats = [...new Set(db.filter(i => i.macro === state.m).map(i => i.categoria))];
-            let html = `<div class="btn-back" onclick="nav(null,null)">← TORNA INDIETRO</div>`;
-            html += `<div class="${cl(cfg.catlayout) === 'grid' ? 'grid' : 'list'} ani">`;
+            let h = `<div class="back-nav" onclick="nav(null,null)">← MENU PRINCIPALE</div>`;
+            h += `<div class="${cl(cfg.catlayout) === 'grid' ? 'grid' : 'list'} ani">`;
             cats.forEach(c => {
-                const img = db.find(i => i.categoria === c)?.fotourl || '';
+                const img = db.find(i => i.categoria === c && i.fotourl)?.fotourl || '';
                 const showImg = cl(cfg.catimgshow) !== 'no';
-                html += `
-                <div class="card-m" style="height:120px" onclick="nav('${state.m}', '${c}')">
+                h += `
+                <div class="card-main" style="height:130px" onclick="nav('${state.m}', '${c}')">
                     ${showImg ? `<img src="${img}"><div class="ov"></div>` : ''}
                     <span style="color:${showImg ? '#fff' : (cfg.textcattitlecolor || '#000')}">${c}</span>
                 </div>`;
             });
-            out.innerHTML = html + '</div>';
+            out.innerHTML = h + '</div>';
         } 
         else {
             // LIVELLO 3: PIATTI
             const items = db.filter(i => i.macro === state.m && i.categoria === state.c);
-            let html = `<div class="btn-back" onclick="nav('${state.m}',null)">← ${state.c}</div><div class="ani">`;
+            let h = `<div class="back-nav" onclick="nav('${state.m}',null)">← ${state.c}</div><div class="ani">`;
             items.forEach(i => {
                 const p = parseFloat(i.prezzo) > 0 ? i.prezzo + '€' : '';
-                html += `
+                h += `
                 <div class="dish-card">
                     ${i.fotourl ? `<img src="${i.fotourl}" class="dish-img">` : ''}
-                    <div style="flex:1">
-                        <div style="font-weight:900; font-size:1.1rem">${i.nomeit}</div>
-                        <div style="font-size:0.85rem; color:#666; margin:4px 0">${i.descit || ''}</div>
-                        <div style="font-weight:900; color:${cfg.themeprimary || '#000'}">${p}</div>
+                    <div class="dish-info">
+                        <div class="dish-name">${i.nomeit}</div>
+                        <div class="dish-desc">${i.descit || ''}</div>
+                        <div class="dish-price">${p}</div>
                     </div>
                 </div>`;
             });
-            out.innerHTML = html + '</div>';
+            out.innerHTML = h + '</div>';
         }
     }
 
     window.nav = (m, c) => { state.m = m; state.c = c; window.scrollTo(0,0); render(); };
     init();
-    
-    // Registra Service Worker per PWA
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 </script>
 </body>
 </html>
