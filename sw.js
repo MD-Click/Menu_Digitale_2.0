@@ -1,43 +1,12 @@
-const CACHE_NAME = 'menu-celestiale-v1';
-const urlsToCache = [
-    './',
-    './index.html',
-    './app.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js'
-];
+const CACHE_NAME = 'smart-menu-v2';
 
-// Installazione Service Worker
-self.addEventListener('install', event => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('Cache aperta');
-                return cache.addAll(urlsToCache);
-            })
-    );
-});
+self.addEventListener('install', (e) => self.skipWaiting());
 
-// Fetching e Strategia "Network First" (Cerca prima online, se non c'è rete usa la cache)
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        fetch(event.request).catch(() => {
-            return caches.match(event.request);
-        })
-    );
-});
-
-// Pulizia Vecchie Cache
-self.addEventListener('activate', event => {
-    const cacheWhitelist = [CACHE_NAME];
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
-        })
-    );
+self.addEventListener('fetch', (e) => {
+  // Se la richiesta è per Google Sheets, bypassa la cache totalmente
+  if (e.request.url.includes('google.com') || e.request.url.includes('tqx=out:csv')) {
+    return e.respondWith(fetch(e.request));
+  }
+  // Altrimenti usa la rete e aggiorna
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });
