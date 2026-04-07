@@ -3,278 +3,245 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Menu Divino PWA</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#ffffff">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <link id="dynamic-fonts" rel="stylesheet">
-
+    <title>Smart Menu Pro - 3 Level Architecture</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        :root { --accent: #f4fc03; --bg: #ffffff; --card: #ffffff; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        :root { --p: #000; --bg: #f8f9fa; --c-bg: #fff; --f-main: 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin:0; font-family: var(--f-main); background-color: var(--bg); min-height: 100vh; color: #222; overflow-x: hidden; }
         
-        body { min-height: 100vh; background-attachment: fixed; transition: 0.3s; overflow-x: hidden; font-family: sans-serif; }
+        /* Sfondo Dinamico */
+        #bg-layer { position:fixed; inset:0; z-index:-1; background-size: cover; background-repeat: no-repeat; transition: 0.8s ease; }
+        
+        /* Loader Enterprise */
+        #loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); backdrop-filter:blur(10px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; transition: opacity 0.5s ease; }
+        .spin { width:50px; height:50px; border:4px solid #f0f0f0; border-top:4px solid var(--p); border-radius:50%; animation: s 1s linear infinite; }
+        @keyframes s { 100% { transform:rotate(360deg); } }
 
-        #loader { position: fixed; inset: 0; z-index: 10000; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner { width: 50px; height: 50px; border: 4px solid rgba(0,0,0,0.1); border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 15px;}
-        #loader-text { font-weight: bold; color: #333; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        /* Header */
+        header { padding: 40px 20px; text-align:center; position:sticky; top:0; z-index:100; transition: 0.3s; }
+        .h-blur { background: rgba(255,255,255,0.85); backdrop-filter: blur(15px); box-shadow: 0 4px 30px rgba(0,0,0,0.08); padding: 15px 20px; }
+        
+        #logo-wrap h1 { margin:0; font-size: var(--l-fs, 2.5rem); color: var(--l-c, #000); font-weight:900; text-transform:uppercase; cursor:pointer; line-height: 1.1; }
+        #logo-wrap img { height: var(--l-img-s, 150px); max-width: 100%; object-fit: contain; display:block; margin:0 auto; cursor:pointer; }
+        #subt { font-size: var(--s-fs, 1rem); margin-top:8px; font-weight: 600; color: var(--s-c, #000); text-transform: uppercase; letter-spacing: 2px; }
 
-        header { padding: 20px 15px 5px; text-align: center; position: sticky; top: 0; z-index: 1000; background: inherit; }
-        #app-logo img { transition: 0.3s; margin: 0 auto; display: block; }
+        .container { padding:15px; max-width:800px; margin:auto; min-height: 70vh; padding-bottom: 50px; }
 
-        .nav-bar { display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 10px auto; padding: 0 15px; min-height: 40px; }
-        #btn-back { border: none; padding: 10px 18px; border-radius: 12px; font-weight: 900; cursor: pointer; visibility: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.15); text-transform: uppercase; }
+        /* Layout Griglia e Lista */
+        .grid { display:grid; grid-template-columns: 1fr 1fr; gap:15px; }
+        .list { display:flex; flex-direction:column; gap:15px; }
 
-        .view { display: none; padding: 15px; max-width: 800px; margin: 0 auto; animation: fadeInUp 0.4s ease; }
-        .view.active { display: block; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .list { display: flex; flex-direction: column; gap: 15px; }
-
-        .c-macro { 
-            border-radius: 20px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
-            background-size: cover; background-position: center; box-shadow: 0 6px 20px rgba(0,0,0,0.2); cursor: pointer; background-color: #333;
+        /* Livelli 1 & 2: Card Full Immagine */
+        .card-img { 
+            height: var(--h); border-radius: 20px; overflow:hidden; position:relative; 
+            display:flex; align-items:center; justify-content: center; cursor:pointer;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12); transition: transform 0.2s;
         }
-        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
-        .c-label { position: relative; z-index: 2; font-weight: 900; text-transform: uppercase; text-align: center; padding: 10px; }
+        .card-img:active { transform: scale(0.96); }
+        .card-img img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+        .card-img .ov { position:absolute; inset:0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%); z-index:2; }
+        .card-img span { position:relative; z-index:3; color: var(--txt-c); font-size: var(--txt-s); font-weight:900; text-transform:uppercase; text-align:center; padding:15px; letter-spacing: 1px; }
 
-        .p-card { padding: 18px; border-radius: 22px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); background: var(--card); }
-        .p-img { width: 100%; border-radius: 15px; margin-bottom: 12px; object-fit: cover; }
+        /* Livello 2: Card Testo (Se Cat_Img_Show = NO o manca foto) */
+        .card-text {
+            background: var(--c-bg); border-radius: 15px; padding: 25px 20px; text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #eaeaea; transition: 0.2s;
+        }
+        .card-text:active { transform: scale(0.98); background: #f8f8f8; }
+        .card-text span { font-weight: 800; font-size: 1.2rem; text-transform: uppercase; color: var(--txt-c); }
 
-        #filter-bar { display: none; gap: 10px; justify-content: center; padding: 10px; overflow-x: auto; margin-bottom: 5px; }
-        .f-btn { padding: 8px 16px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; white-space: nowrap; }
+        /* Livello 3: Dettaglio Piatti */
+        .dish-card { 
+            background: var(--c-bg); border-radius: 20px; padding: 18px; display:flex; align-items:center; 
+            margin-bottom: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #f0f0f0;
+        }
+        .dish-img { width: 95px; height: 95px; object-fit:cover; border-radius: 14px; margin-right: 18px; }
+        .dish-info { flex:1; }
+        .dish-name { font-weight: 800; font-size: 1.2rem; margin:0; color: #111; line-height: 1.2; }
+        .dish-desc { font-size: 0.9rem; color: #666; margin: 6px 0; line-height: 1.4; }
+        .dish-allergies { font-size: 0.75rem; color: #c0392b; font-weight: 600; margin-top: 4px; display: inline-block; padding: 2px 8px; background: #fadbd8; border-radius: 20px; }
+        .dish-price { font-weight: 900; color: var(--p); font-size: 1.3rem; margin-top: 8px; }
 
-        #btn-top { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; border: none; display: none; align-items: center; justify-content: center; z-index: 1001; box-shadow: 0 4px 15px rgba(0,0,0,0.3); font-size: 20px;}
+        .back-nav { display:inline-flex; align-items:center; padding:12px 25px; background:#111; color:#fff; border-radius:50px; font-weight:800; margin-bottom:25px; cursor:pointer; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        
+        .ani { animation: fadeUp 0.4s ease-out forwards; }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
     </style>
 </head>
 <body>
 
 <div id="loader">
-    <div class="spinner"></div>
-    <div id="loader-text">Connessione ai Dati Celesti...</div>
+    <div class="spin"></div>
+    <p id="l-msg" style="margin-top:20px; font-weight:700; color:#333; letter-spacing: 1px;">CARICAMENTO...</p>
 </div>
+<div id="bg-layer"></div>
 
-<header id="main-header">
-    <div id="app-logo"></div>
-    <div id="app-subtitle"></div>
-    <div class="nav-bar">
-        <button id="btn-back" onclick="goBack()">← INDIETRO</button>
-        <div id="v-title" style="font-weight: 900; text-transform: uppercase; letter-spacing: 1px;"></div>
-        <div style="width:60px"></div>
-    </div>
-    <div id="filter-bar"></div>
+<header id="h-main">
+    <div id="logo-wrap"></div>
+    <div id="subt"></div>
 </header>
 
-<main>
-    <div id="v-macro" class="view"></div>
-    <div id="v-cat" class="view"></div>
-    <div id="v-items" class="view"></div>
-</main>
-
-<button id="btn-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
-
-<script src="app.js"></script>
+<div class="container">
+    <div id="view"></div>
+</div>
 
 <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const SHEET_ID = urlParams.get('id');
-    const GID_MENU = "1832483838"; 
+    const SID = new URLSearchParams(window.location.search).get('id');
+    const LANG = navigator.language.split('-')[0].toLowerCase();
+    let db = [], cfg = {}, st = { m: null, c: null };
 
-    let db = [], cfg = {}, state = { step: 'macro', m: null, c: null, filters: {} };
+    // Sanitizzazione stringhe
+    const cl = (s) => s ? s.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
 
-    // IL MOTORE FUZZY: Ignora maiuscole, spazi e caratteri strani
-    const fz = (str) => (str || "").toString().toLowerCase().replace(/[^a-z0-9]/g, '');
-    const isYes = (s) => ["si", "sì", "yes"].includes(fz(s));
-    
-    // Recupero Dati Blindato
-    function getC(key, def = '') {
-        const foundKey = Object.keys(cfg).find(k => fz(k) === fz(key));
-        return (foundKey && cfg[foundKey] !== '') ? cfg[foundKey] : def;
-    }
-    function getM(row, key, def = '') {
-        const foundKey = Object.keys(row).find(k => fz(k) === fz(key));
-        return (foundKey && row[foundKey] !== '') ? row[foundKey] : def;
+    // Traduttore Neurale Silenzioso
+    async function translate(text) {
+        if (!text || LANG === 'it' || text.startsWith('http')) return text;
+        try {
+            const res = await axios.get(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=it&tl=${LANG}&dt=t&q=${encodeURI(text)}`);
+            return res.data[0][0][0];
+        } catch (e) { return text; }
     }
 
     async function init() {
-        if(!SHEET_ID) { document.getElementById('loader-text').innerText = "ERRORE: Manca ID Google Sheet nell'URL!"; return; }
-        
-        // Failsafe Timer
-        const failSafe = setTimeout(() => {
-            document.getElementById('loader').style.display = 'none';
-            alert("Il caricamento sta impiegando troppo. Verifica l'ID del foglio o la connessione.");
-        }, 8000);
-
+        if(!SID) {
+            document.getElementById('l-msg').innerText = "Nessun ID Fornito";
+            return;
+        }
+        const ts = Date.now();
         try {
-            const [rawCfg, rawMenu] = await Promise.all([fetchCSV(0), fetchCSV(GID_MENU)]);
+            const [csvC, csvM] = await Promise.all([
+                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Config&v=${ts}`).then(r => r.text()),
+                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Menu&v=${ts}`).then(r => r.text())
+            ]);
+
+            // Costruzione Dizionario Configurazione
+            csvC.split('\n').forEach(row => {
+                const p = row.split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                if(p.length >= 2) cfg[cl(p[0])] = p[1];
+            });
+
+            // Costruzione Database Menu
+            const rowsM = csvM.split('\n').map(row => row.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
+            const headM = rowsM[0].map(h => cl(h));
             
-            rawCfg.forEach(r => { if(getM(r, 'Parametro')) cfg[getM(r, 'Parametro')] = getM(r, 'Valore'); });
-            db = rawMenu;
+            const rawItems = rowsM.slice(1).map(row => {
+                let obj = {};
+                headM.forEach((h, i) => obj[h] = row[i]);
+                return obj;
+            }).filter(i => cl(i.attivo) === 'si');
 
-            clearTimeout(failSafe);
-            setupApp();
-        } catch(e) { 
-            clearTimeout(failSafe);
-            console.error(e);
-            document.getElementById('loader-text').innerText = "Errore di Rete o Dati non validi.";
-        }
+            // Motore di Traduzione (se necessario)
+            if (LANG !== 'it') {
+                document.getElementById('l-msg').innerText = "TRADUZIONE IN CORSO...";
+                for (let i of rawItems) {
+                    i.nomeit = await translate(i.nomeit);
+                    i.descit = await translate(i.descit);
+                    i.categoria = await translate(i.categoria);
+                    i.macro = await translate(i.macro);
+                    i.allergit = await translate(i.allergit);
+                }
+            }
+            db = rawItems;
+
+            applyStyles();
+            render();
+            
+            // Gestione Timer Loader da Config
+            const lTime = parseInt(cfg.loadertime) || 500;
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.remove(), 500);
+            }, lTime);
+
+        } catch (e) { console.error("Errore Fatale:", e); document.getElementById('l-msg').innerText = "ERRORE DI CONNESSIONE"; }
     }
 
-    async function fetchCSV(gid) {
-        const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&t=${Date.now()}`;
-        const res = await fetch(url);
-        if(!res.ok) throw new Error("Fetch failed");
-        const text = await res.text();
-        return new Promise(res => Papa.parse(text, {header:true, skipEmptyLines:true, complete: o => res(o.data)}));
-    }
-
-    function setupApp() {
-        const root = document.documentElement;
-        const body = document.body;
+    function applyStyles() {
+        const s = document.documentElement.style;
+        const lw = document.getElementById('logo-wrap');
+        const bgLayer = document.getElementById('bg-layer');
         
-        root.style.setProperty('--bg', getC('App_Bg_Color', '#e8e8e8'));
-        root.style.setProperty('--accent', getC('Filter_Active_Color', '#f4fc03'));
-        root.style.setProperty('--card', getC('Card_Bg', '#ffffff'));
-
-        if(getC('App_Bg_Type').toUpperCase() === 'IMAGE' && getC('App_Bg_Image')) {
-            body.style.background = `url('${getC('App_Bg_Image')}') ${getC('App_Bg_Pos', 'center')} / ${getC('App_Bg_Size', 'cover')} no-repeat fixed`;
+        // Sfondo Config
+        if(cl(cfg.appbgtype) === 'image' && cfg.appbgimage) {
+            bgLayer.style.backgroundImage = `url('${cfg.appbgimage}')`;
+            bgLayer.style.backgroundPosition = cfg.appbgpos || 'center center';
+            bgLayer.style.backgroundSize = cfg.appbgsize || 'cover';
+            s.setProperty('--bg', 'transparent');
         } else {
-            body.style.backgroundColor = getC('App_Bg_Color', '#e8e8e8');
+            s.setProperty('--bg', cfg.appbgcolor || '#f8f9fa');
         }
 
-        const font = getC('Font_Main', 'Montserrat');
-        document.getElementById('dynamic-fonts').href = `https://fonts.googleapis.com/css2?family=${font.replace(/ /g,'+')}:wght@400;700;900&display=swap`;
-        body.style.fontFamily = `'${font}', sans-serif`;
-
-        const logoDiv = document.getElementById('app-logo');
-        if(getC('Logo_Type').toUpperCase() === 'IMAGE' && getC('Logo_URL')) {
-            const lSize = getC('Logo_Img_Size', '120px');
-            logoDiv.innerHTML = `<img src="${getC('Logo_URL')}" style="width:${lSize}; height:auto;">`;
+        // Header Config
+        if(cl(cfg.logotype) === 'image' && cfg.logourl) {
+            lw.innerHTML = `<img src="${cfg.logourl}" onclick="nav(null, null)">`;
+            s.setProperty('--l-img-s', cfg.logoimgsize || '150px');
         } else {
-            logoDiv.innerHTML = `<h1 style="color:${getC('Logo_Text_Color')}; font-size:${getC('Logo_Text_Size', '2rem')}">${getC('Logo_Text', 'MENU')}</h1>`;
+            lw.innerHTML = `<h1 onclick="nav(null, null)">${cfg.logotext || 'MENU'}</h1>`;
+            s.setProperty('--l-c', cfg.logotextcolor || '#000');
+            s.setProperty('--l-fs', cfg.logotextsize || '2.5rem');
         }
 
-        const sub = document.getElementById('app-subtitle');
-        sub.innerText = getC('App_Subtitle', '');
-        sub.style.cssText = `color:${getC('Subtitle_Color')}; font-size:${getC('Subtitle_Size')}; display:${isYes(getC('Show_Subtitle'))?'block':'none'}; margin-top:${getC('Subtitle_Margin')}; text-align:${getC('Subtitle_Align')}; font-family:'${getC('Subtitle_Font', font)}'`;
+        if(cl(cfg.appsubtitle)) {
+            const stx = document.getElementById('subt');
+            stx.innerText = cfg.appsubtitle;
+            s.setProperty('--s-fs', cfg.subtitlesize || '1rem');
+            s.setProperty('--s-c', cfg.subtitlecolor || '#000');
+            if(cfg.subtitlefont) stx.style.fontFamily = cfg.subtitlefont;
+        }
 
-        document.getElementById('btn-top').style.background = getC('Btn_Top_Bg', '#fff');
-        document.getElementById('btn-top').style.color = getC('Btn_Top_Simbol_Color', '#000');
-
-        const mode = getC('Layout_Mode', 'MACRO').toUpperCase();
-        if(mode === 'CATEGORIE') { state.step = 'cat'; renderCat(true); }
-        else if(mode === 'UNICA') { state.step = 'items'; renderItems(true); }
-        else { state.step = 'macro'; renderMacro(); }
-
-        setTimeout(() => document.getElementById('loader').style.display = 'none', parseInt(getC('Loader_Time', '1000')));
-    }
-
-    function renderMacro() {
-        switchView('v-macro');
-        const macros = [...new Set(db.map(i => getM(i, 'Macro')))].filter(Boolean);
-        const container = document.getElementById('v-macro');
-        container.className = `view active ${getC('Macro_Layout') === 'GRID' ? 'grid' : 'list'}`;
+        // Palette Globale
+        s.setProperty('--p', cfg.logotextcolor || '#050000'); // Colore primario
+        s.setProperty('--c-bg', '#ffffff');
+        if(cfg.fontmain) s.setProperty('--f-main', cfg.fontmain);
         
-        container.innerHTML = macros.map(m => {
-            const isBev = m.toUpperCase().includes('BEV');
-            const img = isBev ? getC('Macro_Img_Bevande') : getC('Macro_Img_Cibo');
-            return `
-            <div class="c-macro" onclick="selectM('${m}')" style="height:${getC('Macro_Height', '200px')}; background-image:url('${img}')">
-                <div class="overlay"></div>
-                <div class="c-label" style="color:${getC('Macro_Text_Color')}; font-size:${getC('Macro_Text_Size')}">${m}</div>
-            </div>`;
-        }).join('');
-    }
-
-    function selectM(m) { state.m = m; state.step = 'cat'; renderCat(); }
-
-    function renderCat(all = false) {
-        switchView('v-cat');
-        let filtered = all ? db : db.filter(i => getM(i, 'Macro') === state.m);
-        const cats = [...new Set(filtered.map(i => getM(i, 'Categoria')))].filter(Boolean);
-        const container = document.getElementById('v-cat');
-        container.className = `view active ${getC('Cat_Layout') === 'GRID' ? 'grid' : 'list'}`;
-
-        container.innerHTML = cats.map(c => {
-            const item = filtered.find(i => getM(i, 'Categoria') === c);
-            const img = isYes(getC('Cat_Img_Show')) ? getM(item, 'Cat_Img') : '';
-            return `
-            <div class="c-macro" onclick="selectC('${c}')" style="height:120px; background-image:url('${img}'); background-color:${getC('Filter_Active_Color', '#333')}">
-                ${img ? '<div class="overlay"></div>' : ''}
-                <div class="c-label" style="color:${getC('Text_CatTitle_Color', '#fff')}">${c}</div>
-            </div>`;
-        }).join('');
-    }
-
-    function selectC(c) { state.c = c; state.step = 'items'; renderItems(); }
-
-    function renderItems(all = false) {
-        switchView('v-items');
-        const container = document.getElementById('v-items');
-        
-        let list = all ? db : db.filter(i => getM(i, 'Categoria') === state.c && isYes(getM(i, 'Attivo', 'SI')));
-        const first = list[0] || {};
-        container.className = `view active ${getM(first, 'Cat_Layout', getC('Cat_Layout')) === 'GRID' ? 'grid' : 'list'}`;
-
-        const fb = document.getElementById('filter-bar');
-        const isBev = (state.m || "").toUpperCase().includes('BEV');
-        const fKeys = isBev ? ['Analcolico'] : ['Senza Glutine', 'Vegano'];
-        
-        fb.innerHTML = fKeys.map(f => `<button class="f-btn" onclick="togF('${f}')" style="background:${state.filters[f] ? getC('Filter_Active_Color') : '#ddd'}; color:${state.filters[f] ? getC('Filter_Text_Color') : '#333'}">${f}</button>`).join('');
-        fb.style.display = isYes(getC('Show_Filters', 'SI')) ? 'flex' : 'none';
-
-        Object.keys(state.filters).forEach(f => { if(state.filters[f]) list = list.filter(i => isYes(getM(i, f))); });
-
-        container.innerHTML = list.map(i => `
-            <div class="p-card">
-                ${getM(i, 'Foto_URL') ? `<img src="${getM(i, 'Foto_URL')}" class="p-img">` : ''}
-                <div style="font-weight:900; font-size:1.2rem; color:${getC('Card_Name_Color', '#000')}">${getM(i, 'Nome_IT')}</div>
-                <div style="font-size:0.9rem; color:${getC('Card_Desc_Color', '#666')}; margin:8px 0; line-height:1.4">${getM(i, 'Desc_IT')}</div>
-                <div style="color:${getC('Price_Color', '#000')}; font-size:${getC('Price_Size', '1.1rem')}; font-weight:900; text-align:${getC('Price_Align', 'left')}">€${getM(i, 'Prezzo')}</div>
-                ${getM(i, 'Modello_3d') ? `<button class="f-btn" style="background:#000; color:#fff; width:100%; margin-top:15px;" onclick="window.open('${getM(i, 'Modello_3d')}')">📦 VISUALIZZA IN 3D</button>` : ''}
-            </div>`).join('');
-    }
-
-    function switchView(id) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        
-        const mode = getC('Layout_Mode', 'MACRO').toUpperCase();
-        const btn = document.getElementById('btn-back');
-        const title = document.getElementById('v-title');
-
-        let showBack = false;
-        if(mode === 'MACRO') showBack = (id !== 'v-macro');
-        else if(mode === 'CATEGORIE') showBack = (id === 'v-items');
-        else showBack = false;
-
-        btn.style.visibility = showBack ? 'visible' : 'hidden';
-        btn.style.background = getC('Btn_Back_Bg', '#000');
-        btn.style.color = getC('Btn_Back_Text', '#fff');
-
-        title.innerText = (id === 'v-cat') ? state.m : (id === 'v-items' ? state.c : '');
-        document.getElementById('filter-bar').style.display = (id === 'v-items' && isYes(getC('Show_Filters', 'SI'))) ? 'flex' : 'none';
-        window.scrollTo(0,0);
-    }
-
-    function goBack() {
-        const mode = getC('Layout_Mode', 'MACRO').toUpperCase();
-        if(state.step === 'items') {
-            state.step = 'cat';
-            renderCat(mode === 'CATEGORIE');
-        } else if(state.step === 'cat') {
-            state.step = 'macro';
-            renderMacro();
+        // Loader Color
+        if(cfg.loadertimecolor) {
+            document.querySelector('.spin').style.borderTopColor = cfg.loadertimecolor;
+            document.getElementById('l-msg').style.color = cfg.loadertimecolor;
         }
     }
 
-    function togF(f) { state.filters[f] = !state.filters[f]; renderItems(getC('Layout_Mode').toUpperCase() === 'UNICA'); }
-    window.onscroll = () => document.getElementById('btn-top').style.display = window.scrollY > 300 ? 'flex' : 'none';
-    window.onload = init;
-</script>
-</body>
-</html>
+    // Navigazione centralizzata
+    window.nav = (m, c) => { st.m = m; st.c = c; render(); window.scrollTo(0,0); };
+
+    function render() {
+        const out = document.getElementById('view');
+        out.innerHTML = '';
+
+        // STRUTTURA A 3 LIVELLI RIGIDA
+        
+        if (!st.m) {
+            // LIVELLO 1: MACRO
+            const macros = [...new Set(db.map(i => i.macro).filter(Boolean))];
+            let html = `<div class="${cl(cfg.macrolayout) === 'grid' ? 'grid' : 'list'} ani">`;
+            
+            macros.forEach(m => {
+                // Recupera immagine macro dal config (es: Macro_Img_Cibo -> macroimgcibo)
+                let img = cfg['macroimg' + cl(m)];
+                // Fallback: cerca la prima foto valida nei piatti di questa macro
+                if(!img) img = db.find(i => i.macro === m && i.fotourl?.startsWith('http'))?.fotourl || '';
+                
+                html += `
+                <div class="card-img" style="--h: ${cfg.macroheight || '240px'}; --txt-c: ${cfg.macrotextcolor || '#fff'}; --txt-s: ${cfg.macrotextsize || '2.2rem'};" onclick="nav('${m}', null)">
+                    <img src="${img}">
+                    <div class="ov"></div>
+                    <span>${m}</span>
+                </div>`;
+            });
+            out.innerHTML = html + '</div>';
+        } 
+        else if (st.m && !st.c) {
+            // LIVELLO 2: CATEGORIE (Filtrate per Macro)
+            const itemsInMacro = db.filter(i => i.macro === st.m);
+            const cats = [...new Set(itemsInMacro.map(i => i.categoria).filter(Boolean))];
+            
+            let html = `<div class="back-nav" onclick="nav(null, null)">← TORNA ALLE SEZIONI</div>`;
+            html += `<div class="${cl(cfg.catlayout) === 'grid' ? 'grid' : 'list'} ani">`;
+            
+            const showImg = cl(cfg.catimgshow) !== 'no';
+
+            cats.forEach(c => {
+                // Cerca un'immagine specifica per la categoria se esiste, altrimenti prendi una dal piatto
+                let img = itemsInMacro.find(i => i.categoria === c && i.catimg
