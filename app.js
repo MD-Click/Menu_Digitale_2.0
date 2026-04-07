@@ -1,11 +1,5 @@
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-            .then((registration) => {
-                console.log('ServiceWorker registrazione avvenuta con successo. Scope:', registration.scope);
-            })
-            .catch((error) => {
-                console.error('Registrazione ServiceWorker fallita:', error);
-            });
-    });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+  });
 }
