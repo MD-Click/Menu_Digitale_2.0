@@ -1,81 +1,87 @@
 :root {
-    /* Motore Sfondo */
-    --app-bg-color: #ffffff;
-    --app-bg-image: none;
-    --app-bg-position: center bottom;
-    --app-bg-size: cover;
+  /* NAVIGAZIONE */
+  --btn-back-bg: #f4fc03;
+  --btn-back-text-color: #000000;
+  --btn-top-bg: rgba(255,255,255,0.5);
+  --btn-top-simbol-color: #050000;
+  
+  /* MACRO */
+  --macro-height: 240px;
+  --macro-text-size: 2.2rem;
+  --macro-text-color: #ffffff;
+  --macro-text-align: center;
+  --macro-img-cibo: url(''); /* Inserisci URL tra gli apici */
+  --macro-img-bevande: url(''); /* Inserisci URL tra gli apici */
 
-    /* Brand e Header */
-    --font-main: 'sans-serif';
-    --logo-img-size: 250px;
-    --logo-text-color: #050000;
-    --logo-text-size: 2.5rem;
-    
-    --subtitle-font: 'sans-serif';
-    --subtitle-color: #000000;
-    --subtitle-size: 1rem;
-    --subtitle-margin: 10px;
-
-    /* IVA / Footer */
-    --iva-font: 'sans-serif';
-    --iva-color: #000000;
-    --iva-size: 1rem;
+  /* FILTRI E PIATTI */
+  --filter-active-color: #f4fc03;
+  --filter-bg-color: #1a1a1a;
+  --card-bg: rgba(255,255,255,0.1);
+  --card-name-color: #050000;
+  --card-desc-color: #616161;
+  --card-allerg-color: #ff4444;
+  --price-color: #f4fc03;
+  --price-size: 1.4rem;
+  --price-align: right;
 }
 
 body {
-    margin: 0;
-    padding: 0;
-    font-family: var(--font-main);
-    background-color: var(--app-bg-color);
-    background-image: var(--app-bg-image);
-    background-position: var(--app-bg-position);
-    background-size: var(--app-bg-size);
-    background-repeat: no-repeat;
-    background-attachment: fixed; 
-    min-height: 100vh;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+  padding-bottom: 80px; /* Spazio per scroll */
 }
 
-.hidden {
-    display: none !important;
+/* --- BANNER PWA --- */
+#install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #1a1a1a;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  box-sizing: border-box;
+  z-index: 9999;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
 }
+#install-banner.hidden { display: none; }
+#install-btn {
+  background-color: var(--btn-back-bg);
+  color: #000;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+#close-banner-btn { background: none; border: none; color: white; font-size: 16px; cursor: pointer;}
 
-/* Header e Brand */
-#main-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    text-align: center;
-    position: relative;
-}
+/* --- NAVIGAZIONE --- */
+#btn-back { display: none; position: fixed; top: 20px; left: 20px; background-color: var(--btn-back-bg); color: var(--btn-back-text-color); padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+#btn-top { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--btn-top-bg); color: var(--btn-top-simbol-color); width: 50px; height: 50px; border: none; border-radius: 50%; cursor: pointer; font-size: 24px; z-index: 1000; backdrop-filter: blur(5px); transition: opacity 0.3s ease; }
 
-.header-controls {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    gap: 10px;
-}
+/* --- MACRO --- */
+.macro-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 20px; max-width: 800px; margin: 0 auto; }
+.macro-card { height: var(--macro-height); color: var(--macro-text-color); font-size: var(--macro-text-size); display: flex; align-items: var(--macro-text-align); justify-content: var(--macro-text-align); text-align: var(--macro-text-align); border-radius: 12px; background-size: cover; background-position: center; text-decoration: none; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; text-shadow: 2px 2px 8px rgba(0,0,0,0.8); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+#macro-cibo { background-image: var(--macro-img-cibo); background-color: #ff9800; }
+#macro-bevande { background-image: var(--macro-img-bevande); background-color: #2196f3; }
 
-.logo-text-element {
-    font-family: var(--font-main);
-    color: var(--logo-text-color);
-    font-size: var(--logo-text-size);
-    margin: 0;
-    font-weight: 700;
-}
+/* --- FILTRI --- */
+.filters-container { display: flex; justify-content: center; gap: 10px; padding: 15px 20px; margin: 0 auto; max-width: 800px; flex-wrap: wrap; }
+.filter-btn { background-color: var(--filter-bg-color); color: #ffffff; border: 1px solid rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; }
+.filter-btn.active { background-color: var(--filter-active-color); color: #000000; border-color: var(--filter-active-color); }
 
-.subtitle-element {
-    font-family: var(--subtitle-font);
-    color: var(--subtitle-color);
-    font-size: var(--subtitle-size);
-    margin-top: var(--subtitle-margin);
-}
-
-/* Footer / IVA */
-#app-footer {
-    padding: 15px;
-    font-family: var(--iva-font);
-    color: var(--iva-color);
-    font-size: var(--iva-size);
-}
+/* --- PIATTI --- */
+.dishes-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; padding: 20px; max-width: 800px; margin: 0 auto; }
+.dishes-container.list-layout { display: flex; flex-direction: column; }
+.dish-card { background-color: var(--card-bg); border-radius: 12px; padding: 15px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.dish-name { color: var(--card-name-color); font-size: 1.2rem; font-weight: 700; margin: 0; }
+.dish-desc { color: var(--card-desc-color); font-size: 0.9rem; margin: 0; }
+.dish-allerg { color: var(--card-allerg-color); font-size: 0.8rem; font-weight: bold; margin: 0; }
+.dish-price { color: var(--price-color); font-size: var(--price-size); font-weight: bold; text-align: var(--price-align); margin-top: auto; }
+.dish-card.hidden-by-filter, .dish-card.hidden-by-macro { display: none !important; }
