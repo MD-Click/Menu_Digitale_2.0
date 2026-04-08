@@ -9,9 +9,11 @@
         :root {
             --app-bg: #f9fafb;
             --header-bg: rgba(255, 255, 255, 0.95);
+            --header-h: 120px; /* Variabile ripristinata per l'altezza */
             --back-bg: rgba(255, 255, 255, 0.9);
             --back-color: #4f46e5;
             --macro-h: 180px;
+            --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); /* Nuova variabile Ombre */
         }
 
         body {
@@ -26,9 +28,10 @@
             overscroll-behavior-y: none; 
         }
 
-        /* HEADER BLINDATO */
+        /* HEADER BLINDATO (Ora rispetta l'altezza al 100%) */
         #main-header {
             background: var(--header-bg);
+            height: var(--header-h); /* FIX: Comando ripristinato */
             position: fixed;
             top: 0;
             left: 0;
@@ -40,9 +43,9 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.06);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            padding: 15px 20px;
-            min-height: 80px;
+            padding: 0 20px; /* Padding top/bottom rimosso per lasciare controllo all'altezza fissa */
             transition: all 0.3s ease;
+            overflow: hidden; /* Previene sbavature se si restringe troppo */
         }
 
         /* TASTO INDIETRO */
@@ -57,7 +60,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow); /* Usa la stessa ombra dinamica */
             z-index: 1000;
             cursor: pointer;
             border: 1px solid rgba(0,0,0,0.05);
@@ -66,7 +69,7 @@
         #back-button:active { transform: scale(0.9); }
         #back-button.active { display: flex; }
 
-        /* MACRO CARD */
+        /* MACRO E CARD GENERICHE */
         .macro-card {
             height: var(--macro-h);
             border-radius: 1.25rem;
@@ -74,11 +77,15 @@
             background-position: center;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow); /* Ombra dinamica applicata */
             transition: all 0.2s ease;
         }
         .macro-card:active { transform: scale(0.96); }
         .macro-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); }
+
+        .menu-card {
+            box-shadow: var(--card-shadow); /* Ombra dinamica per Categorie e Piatti */
+        }
 
         /* FOTO PIATTO */
         .item-photo {
@@ -150,13 +157,9 @@
                 const csv = await response.text();
                 csv.split('\n').slice(1).forEach(row => {
                     if(row.trim() === '') return;
-                    
-                    // Regex avanzata per rispettare il testo tra virgolette nel CSV
                     const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     if(cols.length >= 2) {
-                        // Rimuove solo le virgolette iniziali e finali, rispettando il contenuto
                         const key = cols[0].replace(/^"|"$/g, '').trim();
-                        // Ricostruisce il valore nel caso contenga virgole vere
                         const val = cols.slice(1).join(',').replace(/^"|"$/g, '').replace(/;/g, ',').trim();
                         appConfig[key] = val;
                     }
@@ -167,7 +170,9 @@
         function applyConfig() {
             const root = document.documentElement;
             
+            // Applica Altezza e Colori
             root.style.setProperty('--header-bg', appConfig.Header_BgColor || 'rgba(255, 255, 255, 0.95)');
+            root.style.setProperty('--header-h', appConfig.Header_Height || '120px'); // FIX: Applica altezza a variabile radice
             root.style.setProperty('--app-bg', appConfig.Bg_Color || '#f9fafb');
             if(appConfig.Bg_Type === 'image') root.style.setProperty('--app-bg-img', `url('${appConfig.Bg_Image_URL}')`);
             
@@ -175,6 +180,15 @@
             root.style.setProperty('--back-bg', appConfig.Back_Btn_Bg || '#fff');
             root.style.setProperty('--back-color', appConfig.Back_Btn_Color || '#000');
 
+            // --- MOTORE OMBRE ---
+            let shadowVal = '0 10px 15px -3px rgba(0,0,0,0.1)'; // Default (Medium)
+            const shadowInt = (appConfig.Card_Shadow_Intensity || 'medium').toLowerCase().trim();
+            if(shadowInt === 'light') shadowVal = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
+            else if(shadowInt === 'strong') shadowVal = '0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1)';
+            else if(shadowInt === 'none') shadowVal = 'none';
+            root.style.setProperty('--card-shadow', shadowVal);
+
+            // Posizionamento Tasto Indietro basato sulla vera altezza header
             const backBtn = document.getElementById('back-button');
             const pos = (appConfig.Back_Btn_Position || 'center').toLowerCase().trim();
             const hHeight = parseInt(appConfig.Header_Height || '120');
@@ -182,7 +196,7 @@
             else if (pos === 'bottom') backBtn.style.top = `calc(${hHeight}px - 55px)`;
             else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
 
-            // --- MOTORE LOGO BLINDATO ---
+            // Logo
             const logoCont = document.getElementById('logo-container');
             logoCont.innerHTML = ''; 
             logoCont.className = `w-full flex justify-${(appConfig.Logo_Align || 'center').toLowerCase().trim()}`;
@@ -191,24 +205,17 @@
             const hasImageUrl = appConfig.Logo_Image_URL && appConfig.Logo_Image_URL.trim() !== '' && appConfig.Logo_Image_URL !== 'undefined';
 
             if (isImage && hasImageUrl) {
-                logoCont.innerHTML = `<img src="${appConfig.Logo_Image_URL}" style="height:${appConfig.Logo_Image_Size || '60px'}; object-fit:contain;">`;
-                document.title = "Menu Digitale"; // Fallback titolo browser
+                logoCont.innerHTML = `<img src="${appConfig.Logo_Image_URL}" style="max-height:${appConfig.Logo_Image_Size || '60px'}; object-fit:contain;">`;
+                document.title = "Menu Digitale";
             } else {
-                // Lettura sicura del testo
                 let customText = appConfig.Logo_Text;
-                if (!customText || customText.toLowerCase() === 'undefined' || customText.trim() === '') {
-                    customText = 'Menu Digitale'; 
-                }
-                
+                if (!customText || customText.toLowerCase() === 'undefined' || customText.trim() === '') customText = 'Menu Digitale'; 
                 const isBold = (appConfig.Logo_Text_Bold || '').toUpperCase().trim() === 'FALSE' ? 'normal' : 'bold';
-                
                 logoCont.innerHTML = `<h1 style="color:${appConfig.Logo_Text_Color || '#000'}; font-size:${appConfig.Logo_Text_Size || '24px'}; font-weight:${isBold}; margin:0; line-height:1; font-family:${appConfig.Logo_Text_Font || 'sans-serif'};">${customText}</h1>`;
-                
-                // Aggiorna anche il tab del browser
                 document.title = customText;
             }
             
-            // Sottotitolo (Con Toggle Sicuro)
+            // Sottotitolo
             const sub = document.getElementById('subtitle-container');
             if((appConfig.Subtitle_Show || '').toUpperCase().trim() === 'FALSE') {
                 sub.style.display = 'none';
@@ -287,8 +294,9 @@
             
             container.innerHTML = ''; 
             cats.forEach(c => {
+                // Aggiunta la classe menu-card per le ombre dinamiche
                 container.innerHTML += `
-                    <div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer active:bg-gray-50 mb-3">
+                    <div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="menu-card bg-white p-5 rounded-2xl border border-gray-100 flex justify-between items-center cursor-pointer active:bg-gray-50 mb-3">
                         <span class="font-bold text-gray-800 text-lg">${c}</span>
                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </div>`;
@@ -319,8 +327,9 @@
                     photoHTML = `<img src="${i.photoUrl}" alt="${i.name}" class="item-photo shrink-0 ml-3">`;
                 }
 
+                // Aggiunta la classe menu-card per le ombre dinamiche
                 container.innerHTML += `
-                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 flex justify-between items-stretch gap-2 mb-4">
+                    <div class="menu-card bg-white p-5 rounded-3xl border border-gray-100 flex justify-between items-stretch gap-2 mb-4">
                         <div class="flex flex-col justify-center flex-grow">
                             <div class="flex justify-between items-start gap-2">
                                 <h3 class="font-extrabold text-gray-900 text-lg leading-tight">${i.name}</h3>
