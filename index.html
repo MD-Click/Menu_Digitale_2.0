@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Menu Master V9</title>
+    <title>Digital Menu Master V9.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -26,7 +26,7 @@
             overscroll-behavior-y: none; 
         }
 
-        /* HEADER BLINDATO */
+        /* HEADER BLINDATO (Fisso per tutte le pagine) */
         #main-header {
             background: var(--header-bg);
             position: fixed;
@@ -178,9 +178,8 @@
             else if (pos === 'bottom') backBtn.style.top = `calc(${hHeight}px - 55px)`;
             else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
 
-            // RISOLTO: Logo Principale
             const logoCont = document.getElementById('logo-container');
-            logoCont.innerHTML = ''; // Svuota sempre prima di rigenerare
+            logoCont.innerHTML = ''; 
             logoCont.className = `w-full flex justify-${appConfig.Logo_Align || 'center'}`;
             
             if(appConfig.Logo_Type === 'image' && appConfig.Logo_Image_URL && appConfig.Logo_Image_URL !== 'undefined') {
@@ -190,7 +189,6 @@
                 logoCont.innerHTML = `<h1 style="color:${appConfig.Logo_Text_Color || '#000'}; font-size:${appConfig.Logo_Text_Size || '24px'}; font-weight:${appConfig.Logo_Text_Bold === 'FALSE' ? 'normal' : 'bold'}; margin:0; line-height:1; font-family:${appConfig.Logo_Text_Font || 'sans-serif'};">${validLogoText}</h1>`;
             }
             
-            // Sottotitolo (Con Toggle)
             const sub = document.getElementById('subtitle-container');
             if(appConfig.Subtitle_Show === 'FALSE') {
                 sub.style.display = 'none';
@@ -200,7 +198,6 @@
                 sub.style.cssText = `color:${appConfig.Subtitle_Color || '#666'}; font-size:${appConfig.Subtitle_Size || '14px'}; margin-top:${appConfig.Subtitle_Margin_Top || '5px'}; text-align:${appConfig.Subtitle_Align || 'center'}; font-family:${appConfig.Subtitle_Font || 'sans-serif'};`;
             }
 
-            // Sotto-Sottotitolo (Macro/Livello) stili
             const levelStyle = `color:${appConfig.Level_Title_Color || '#4f46e5'}; font-size:${appConfig.Level_Title_Size || '16px'}; font-weight:${appConfig.Level_Title_Bold === 'FALSE' ? 'normal' : 'bold'}; text-align:${appConfig.Level_Title_Align || 'center'}; font-family:${appConfig.Level_Title_Font || 'sans-serif'}; margin-top: 8px; display: none;`;
             document.getElementById('level-title-inside').style.cssText = levelStyle;
             document.getElementById('level-title-outside').style.cssText = levelStyle + ' margin-top: 0px; margin-bottom: 20px;'; 
@@ -216,21 +213,19 @@
             }, 50); 
         }
 
-        // NUOVO PARSER: Mappa le 13 colonne esatte della tua immagine
         async function fetchMenu() {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu`;
             try {
                 const response = await fetch(url);
                 const csv = await response.text();
                 fullData = csv.split('\n').slice(1).filter(r => r.trim() !== '').map(r => {
-                    // Pulisce le virgolette in modo sicuro
                     const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').trim());
                     return { 
                         macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], 
                         price: c[5], gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], 
                         active: c[10], photoUrl: c[11], model3d: c[12] 
                     };
-                }).filter(i => i.macro && i.active.toUpperCase() !== 'FALSE'); // Salta i piatti inattivi
+                }).filter(i => i.macro && i.active.toUpperCase() !== 'FALSE'); 
                 
                 document.getElementById('loading-screen').style.display = 'none';
                 renderLevel1();
@@ -239,7 +234,6 @@
             }
         }
 
-        // --- LIVELLO 1: MACRO ---
         function renderLevel1() {
             const layoutContainer = document.getElementById('macro-layout-container');
             const macros = [...new Set(fullData.map(i => i.macro))];
@@ -265,7 +259,6 @@
             showPage('page-macro');
         }
 
-        // --- LIVELLO 2: CATEGORIE ---
         function renderLevel2(mName) {
             const container = document.getElementById('page-categories');
             const cats = [...new Set(fullData.filter(i => i.macro === mName).map(i => i.cat))];
@@ -282,7 +275,6 @@
             showPage('page-categories', mName);
         }
 
-        // --- LIVELLO 3: PIATTI ---
         function renderLevel3(mName, cName) {
             const container = document.getElementById('page-items');
             const items = fullData.filter(i => i.cat === cName && i.macro === mName);
@@ -290,19 +282,16 @@
             container.innerHTML = `<div class="mb-4 text-center mt-2"><span class="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] bg-gray-200/50 px-3 py-1 rounded-full">${cName}</span></div>`;
             
             items.forEach(i => {
-                // Generazione Badges (Tags dietetici)
                 let badges = '';
                 if(i.gf && i.gf.toUpperCase() === 'TRUE') badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1">Senza Glutine</span>`;
                 if(i.vegan && i.vegan.toUpperCase() === 'TRUE') badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1">Vegano</span>`;
                 if(i.veg && i.veg.toUpperCase() === 'TRUE') badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1">Vegetariano</span>`;
                 
-                // Allergens
                 let allergensHTML = '';
                 if(i.allerg && i.allerg !== 'undefined' && i.allerg.trim() !== '') {
                     allergensHTML = `<p class="text-[10px] text-red-400 mt-1">Allergeni: ${i.allerg}</p>`;
                 }
 
-                // Foto 
                 let photoHTML = '';
                 if(i.photoUrl && i.photoUrl !== 'undefined' && i.photoUrl.trim() !== '') {
                     photoHTML = `<img src="${i.photoUrl}" alt="${i.name}" class="item-photo shrink-0 ml-3">`;
@@ -326,7 +315,7 @@
             showPage('page-items', mName);
         }
 
-        // --- GESTIONE NAVIGAZIONE & TITOLI ---
+        // MOTORE DI NAVIGAZIONE
         function showPage(p, levelTitle = '') {
             document.getElementById('page-macro').style.display = 'none';
             document.getElementById('page-categories').style.display = 'none';
@@ -347,12 +336,12 @@
 
             if(p === 'page-macro') {
                 backBtn.classList.remove('active');
-                document.body.style.overflow = 'hidden'; 
+                // Sblocco dello scroll per la pagina Macro (Home)
+                document.body.style.overflow = 'auto'; 
             } else {
                 backBtn.classList.add('active');
                 document.body.style.overflow = 'auto';
                 
-                // Gestione Posizione Sotto-Sottotitolo
                 if(appConfig.Level_Title_Show !== 'FALSE') {
                     if((appConfig.Level_Title_Position || 'inside').toLowerCase() === 'outside') {
                         titleOutside.style.display = 'block';
@@ -365,6 +354,7 @@
             }
 
             autoAdjustPadding();
+            // Forza lo scroll in cima istantaneamente al cambio pagina
             window.scrollTo({top: 0, behavior: 'instant'});
         }
 
