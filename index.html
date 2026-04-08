@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Menu Master V8.1</title>
+    <title>Digital Menu Master V8.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --app-bg: #f9fafb;
-            --header-h: 120px;
-            --header-bg: #ffffff;
+            --header-bg: rgba(255, 255, 255, 0.95);
             --back-bg: rgba(255, 255, 255, 0.9);
             --back-color: #4f46e5;
             --macro-h: 180px;
@@ -24,28 +23,29 @@
             min-height: 100vh;
             font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
             margin: 0;
+            overscroll-behavior-y: none; /* Evita il rimbalzo strano su iPhone */
         }
 
-        /* Header Professionale */
-        .header-master {
+        /* HEADER BLINDATO */
+        #main-header {
             background: var(--header-bg);
-            height: var(--header-h);
             position: fixed;
             top: 0;
+            left: 0;
             width: 100%;
-            z-index: 100;
+            z-index: 999;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 15px 20px;
+            min-height: 80px;
+            transition: all 0.3s ease;
         }
 
-        #main-content {
-            padding-top: calc(var(--header-h) + 20px);
-        }
-
-        /* Tasto Indietro */
+        /* TASTO INDIETRO (Slegato dall'header, fisso sullo schermo) */
         #back-button {
             position: fixed;
             left: 15px;
@@ -58,7 +58,7 @@
             justify-content: center;
             border-radius: 50%;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            z-index: 110;
+            z-index: 1000;
             cursor: pointer;
             border: 1px solid rgba(0,0,0,0.05);
             transition: transform 0.1s ease;
@@ -66,7 +66,7 @@
         #back-button:active { transform: scale(0.9); }
         #back-button.active { display: flex; }
 
-        /* Macro Clip */
+        /* MACRO CARD */
         .macro-card {
             height: var(--macro-h);
             border-radius: 1.25rem;
@@ -78,16 +78,12 @@
             transition: all 0.2s ease;
         }
         .macro-card:active { transform: scale(0.96); }
-        
-        .macro-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4));
-        }
+        .macro-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); }
 
-        /* Pagine e Transizioni */
-        .page-transition { display: none; }
-        .active-page { display: block; animation: pageIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* TRANSIZIONI FLUIDE E PULITE */
+        .page-content { 
+            animation: pageIn 0.3s ease-out forwards; 
+        }
         @keyframes pageIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--back-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
@@ -96,9 +92,10 @@
 </head>
 <body>
 
-    <header class="header-master px-6 relative">
+    <header id="main-header">
         <div id="logo-container" class="w-full flex"></div>
-        <div id="subtitle-container" class="text-center"></div>
+        <div id="subtitle-container"></div>
+        <div id="level-title-container" style="display: none; letter-spacing: 0.1em; text-transform: uppercase;"></div>
     </header>
 
     <button id="back-button" onclick="goBack()">
@@ -107,18 +104,18 @@
 
     <main id="main-content" class="px-5 pb-10 max-w-md mx-auto relative">
         
-        <div id="loading-screen" class="page-transition active-page">
-            <div class="flex flex-col items-center pt-20">
-                <div class="loader mb-4"></div>
-                <p class="text-gray-400 text-sm uppercase tracking-widest">Sincronizzazione...</p>
-            </div>
+        <div id="loading-screen" class="flex flex-col items-center pt-20">
+            <div class="loader mb-4"></div>
+            <p class="text-gray-400 text-sm uppercase tracking-widest">Sincronizzazione...</p>
         </div>
 
-        <section id="page-macro" class="page-transition"></section>
+        <section id="page-macro" style="display: none;">
+            <div id="macro-layout-container" class="page-content"></div>
+        </section>
 
-        <section id="page-categories" class="page-transition space-y-4"></section>
+        <section id="page-categories" style="display: none;" class="page-content space-y-4"></section>
 
-        <section id="page-items" class="page-transition space-y-5"></section>
+        <section id="page-items" style="display: none;" class="page-content space-y-5"></section>
     </main>
 
     <script>
@@ -128,9 +125,10 @@
         let fullData = [];
         let navigationStack = ['page-macro'];
 
+        // MOTORE DI AVVIO
         async function init() {
             if (!SHEET_ID) {
-                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>Errore: ID Cliente Mancante</div>";
+                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>ID Cliente Mancante</div>";
                 return;
             }
             await fetchConfig();
@@ -138,12 +136,12 @@
             await fetchMenu();
         }
 
+        // FETCH CONFIGURAZIONI
         async function fetchConfig() {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config`;
             try {
                 const response = await fetch(url);
                 const csv = await response.text();
-                // Pulizia più robusta del CSV
                 csv.split('\n').slice(1).forEach(row => {
                     if(row.trim() === '') return;
                     const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -156,23 +154,29 @@
             } catch(e) { console.error("Errore Lettura Config"); }
         }
 
+        // APPLICAZIONE STILI ESTETICI
         function applyConfig() {
             const root = document.documentElement;
-            root.style.setProperty('--header-h', appConfig.Header_Height || '120px');
-            root.style.setProperty('--header-bg', appConfig.Header_BgColor || '#ffffff');
+            
+            // Sfondi
+            root.style.setProperty('--header-bg', appConfig.Header_BgColor || 'rgba(255, 255, 255, 0.95)');
             root.style.setProperty('--app-bg', appConfig.Bg_Color || '#f9fafb');
+            if(appConfig.Bg_Type === 'image') root.style.setProperty('--app-bg-img', `url('${appConfig.Bg_Image_URL}')`);
+            
+            // Variabili UI
             root.style.setProperty('--macro-h', appConfig.Macro_Height || '180px');
             root.style.setProperty('--back-bg', appConfig.Back_Btn_Bg || '#fff');
             root.style.setProperty('--back-color', appConfig.Back_Btn_Color || '#000');
 
-            // Posizionamento Tasto Indietro
+            // Posizione Tasto Indietro (calcolata in base all'altezza header fissa per evitare salti)
             const backBtn = document.getElementById('back-button');
             const pos = (appConfig.Back_Btn_Position || 'center').toLowerCase();
-            if (pos === 'center') backBtn.style.top = `calc(${appConfig.Header_Height || '120px'} / 2 - 22px)`;
-            else if (pos === 'bottom') backBtn.style.top = `calc(${appConfig.Header_Height || '120px'} - 55px)`;
-            else if (pos === 'outside') backBtn.style.top = `calc(${appConfig.Header_Height || '120px'} + 15px)`;
+            const hHeight = parseInt(appConfig.Header_Height || '120');
+            if (pos === 'center') backBtn.style.top = `calc(${hHeight}px / 2 - 22px)`;
+            else if (pos === 'bottom') backBtn.style.top = `calc(${hHeight}px - 55px)`;
+            else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
 
-            // Logo BLINDATO (Evita stampa "undefined")
+            // Rendering Logo
             const logoCont = document.getElementById('logo-container');
             logoCont.className = `w-full flex justify-${appConfig.Logo_Align || 'center'}`;
             const validLogoText = (appConfig.Logo_Text && appConfig.Logo_Text !== 'undefined') ? appConfig.Logo_Text : 'Menu Digitale';
@@ -180,16 +184,32 @@
             if(appConfig.Logo_Type === 'image' && appConfig.Logo_Image_URL) {
                 logoCont.innerHTML = `<img src="${appConfig.Logo_Image_URL}" style="height:${appConfig.Logo_Image_Size || '60px'}; object-fit:contain;">`;
             } else {
-                logoCont.innerHTML = `<h1 style="color:${appConfig.Logo_Text_Color || '#000'}; font-size:${appConfig.Logo_Text_Size || '24px'}; font-weight:${appConfig.Logo_Text_Bold === 'FALSE' ? 'normal' : 'bold'}; margin:0; line-height:1;">${validLogoText}</h1>`;
+                logoCont.innerHTML = `<h1 style="color:${appConfig.Logo_Text_Color || '#000'}; font-size:${appConfig.Logo_Text_Size || '24px'}; font-weight:${appConfig.Logo_Text_Bold === 'FALSE' ? 'normal' : 'bold'}; margin:0; line-height:1; font-family:${appConfig.Logo_Text_Font || 'sans-serif'};">${validLogoText}</h1>`;
             }
             
-            // Sottotitolo BLINDATO
+            // Rendering Sottotitolo
             const sub = document.getElementById('subtitle-container');
             const validSubText = (appConfig.Subtitle_Text && appConfig.Subtitle_Text !== 'undefined') ? appConfig.Subtitle_Text : '';
             sub.innerText = validSubText;
-            sub.style.cssText = `color:${appConfig.Subtitle_Color || '#666'}; font-size:${appConfig.Subtitle_Size || '14px'}; margin-top:${appConfig.Subtitle_Margin_Top || '5px'}; text-align:${appConfig.Subtitle_Align || 'center'}`;
+            sub.style.cssText = `color:${appConfig.Subtitle_Color || '#666'}; font-size:${appConfig.Subtitle_Size || '14px'}; margin-top:${appConfig.Subtitle_Margin_Top || '5px'}; text-align:${appConfig.Subtitle_Align || 'center'}; font-family:${appConfig.Subtitle_Font || 'sans-serif'};`;
+
+            // Setup stili Sotto-Sottotitolo (titolo del livello)
+            const levelTitle = document.getElementById('level-title-container');
+            levelTitle.style.cssText = `color:${appConfig.Level_Title_Color || '#4f46e5'}; font-size:${appConfig.Level_Title_Size || '16px'}; font-weight:${appConfig.Level_Title_Bold === 'FALSE' ? 'normal' : 'bold'}; text-align:${appConfig.Level_Title_Align || 'center'}; font-family:${appConfig.Level_Title_Font || 'sans-serif'}; margin-top: 8px; display: none;`;
         }
 
+        // FUNZIONE CHIAVE: Calcola l'altezza dell'header per spingere giù i piatti
+        function autoAdjustPadding() {
+            setTimeout(() => {
+                const header = document.getElementById('main-header');
+                const mainContent = document.getElementById('main-content');
+                if(header && mainContent) {
+                    mainContent.style.paddingTop = `calc(${header.offsetHeight}px + 20px)`;
+                }
+            }, 50); // Piccolo ritardo per permettere al DOM di renderizzare il testo
+        }
+
+        // FETCH MENU E DATI
         async function fetchMenu() {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu`;
             try {
@@ -200,27 +220,27 @@
                     return { macro: c[0], cat: c[1], name: c[2], desc: c[3], price: c[4] };
                 }).filter(i => i.macro);
                 
+                document.getElementById('loading-screen').style.display = 'none';
                 renderLevel1();
             } catch (e) {
                 document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500'>Nessun menu trovato.</div>";
             }
         }
 
-        // LIVELLO 1: Le Macro Clip
+        // --- LIVELLO 1: MACRO ---
         function renderLevel1() {
-            const container = document.getElementById('page-macro');
+            const layoutContainer = document.getElementById('macro-layout-container');
             const macros = [...new Set(fullData.map(i => i.macro))];
-            const isGrid = (appConfig.Macro_Layout || 'grid').toLowerCase() === 'grid';
             
-            container.className = `page-transition active-page ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-6'}`;
-            container.innerHTML = '';
+            const isGrid = (appConfig.Macro_Layout || 'grid').toLowerCase() === 'grid';
+            layoutContainer.className = `page-content ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-6'}`;
+            layoutContainer.innerHTML = '';
 
             macros.forEach(m => {
-                // Ricerca immagine nel config, previene undefined
                 const imgKey = `Macro_Img_${m}`;
                 const imgUrl = appConfig[imgKey];
-                const bg = (imgUrl && imgUrl !== 'undefined') ? `url('${imgUrl}')` : 'linear-gradient(135deg, #cbd5e1, #f1f5f9)'; // Grigio Elegante di Fallback
-                const tPos = (appConfig.Macro_Text_Pos || 'center').toLowerCase(); // Default 'center'
+                const bg = (imgUrl && imgUrl !== 'undefined') ? `url('${imgUrl}')` : 'linear-gradient(135deg, #cbd5e1, #f1f5f9)'; 
+                const tPos = (appConfig.Macro_Text_Pos || 'center').toLowerCase(); 
 
                 let html = '';
                 if(tPos === 'outside') {
@@ -233,40 +253,42 @@
                     html = `
                         <div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="background-image:${bg}">
                             <div class="macro-overlay"></div>
-                            <span class="relative z-10 text-white font-extrabold text-xl uppercase tracking-widest text-shadow">${m}</span>
+                            <span class="relative z-10 text-white font-extrabold text-xl uppercase tracking-widest" style="text-shadow: 0 2px 4px rgba(0,0,0,0.6);">${m}</span>
                         </div>`;
                 }
-                container.innerHTML += html;
+                layoutContainer.innerHTML += html;
             });
             showPage('page-macro');
         }
 
-        // LIVELLO 2: Lista Categorie
+        // --- LIVELLO 2: CATEGORIE ---
         function renderLevel2(mName) {
             const container = document.getElementById('page-categories');
             const cats = [...new Set(fullData.filter(i => i.macro === mName).map(i => i.cat))];
             
-            container.innerHTML = `<h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-3 pl-1">${mName}</h2>`;
+            container.innerHTML = ''; // Il titolo della Macro ora è nell'Header
             cats.forEach(c => {
                 container.innerHTML += `
-                    <div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer active:bg-gray-50 mb-3">
+                    <div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer active:bg-gray-50">
                         <span class="font-bold text-gray-800 text-lg">${c}</span>
                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </div>`;
             });
             navigationStack.push('page-categories');
-            showPage('page-categories');
+            showPage('page-categories', mName); // Passiamo il nome della Macro per metterlo nell'header
         }
 
-        // LIVELLO 3: Piatti
+        // --- LIVELLO 3: PIATTI ---
         function renderLevel3(mName, cName) {
             const container = document.getElementById('page-items');
             const items = fullData.filter(i => i.cat === cName && i.macro === mName);
             
-            container.innerHTML = `<h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-3 pl-1">${cName}</h2>`;
+            // Inseriamo in pagina un bel separatore col nome della Categoria
+            container.innerHTML = `<div class="mb-4 text-center mt-2"><span class="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] bg-gray-200/50 px-3 py-1 rounded-full">${cName}</span></div>`;
+            
             items.forEach(i => {
                 container.innerHTML += `
-                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-2 mb-4">
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100 space-y-2">
                         <div class="flex justify-between items-start gap-4">
                             <h3 class="font-extrabold text-gray-900 text-lg leading-tight">${i.name}</h3>
                             <span class="font-black text-indigo-600 shrink-0 bg-indigo-50 px-2 py-1 rounded">${i.price}</span>
@@ -275,28 +297,63 @@
                     </div>`;
             });
             navigationStack.push('page-items');
-            showPage('page-items');
+            showPage('page-items', mName); // Manteniamo il nome Macro fisso nell'header
         }
 
-        function showPage(p) {
-            document.querySelectorAll('.page-transition').forEach(el => el.classList.remove('active-page'));
-            document.getElementById(p).classList.add('active-page');
+        // --- MOTORE DI GESTIONE NAVIGAZIONE (BLINDATO) ---
+        function showPage(p, levelTitle = '') {
+            // Spegne tutte le pagine brutalmente (previene sovrapposizioni Tailwind)
+            document.getElementById('page-macro').style.display = 'none';
+            document.getElementById('page-categories').style.display = 'none';
+            document.getElementById('page-items').style.display = 'none';
+
+            // Accende solo quella richiesta
+            document.getElementById(p).style.display = 'block';
             
-            // Gestione del Tasto Indietro
+            // Resetta animazione CSS per farla ripartire
+            const contentDiv = document.querySelector(`#${p} .page-content`) || document.getElementById(p);
+            contentDiv.style.animation = 'none';
+            contentDiv.offsetHeight; 
+            contentDiv.style.animation = 'pageIn 0.3s ease-out forwards';
+
             const backBtn = document.getElementById('back-button');
+            const titleEl = document.getElementById('level-title-container');
+
             if(p === 'page-macro') {
+                // HOME: Nascondi Tasto Indietro, Blocca Scroll, Nascondi Sotto-Sottotitolo
                 backBtn.classList.remove('active');
+                document.body.style.overflow = 'hidden'; 
+                titleEl.style.display = 'none';
+                titleEl.innerText = '';
             } else {
+                // INTERNE: Mostra Tasto, Sblocca Scroll, Inserisci Titolo Macro nell'Header
                 backBtn.classList.add('active');
+                document.body.style.overflow = 'auto';
+                titleEl.style.display = 'block';
+                titleEl.innerText = levelTitle; 
             }
-            window.scrollTo({top: 0, behavior: 'smooth'});
+
+            // Calcola lo spazio esatto sotto l'header
+            autoAdjustPadding();
+
+            // Riporta in cima allo scroll in modo istantaneo
+            window.scrollTo({top: 0, behavior: 'instant'});
         }
 
         function goBack() { 
             if(navigationStack.length > 1) {
                 navigationStack.pop(); 
                 const prev = navigationStack[navigationStack.length-1];
-                showPage(prev);
+                
+                // Dobbiamo capire che titolo rimettere nell'header se torniamo indietro
+                // Un trucco semplice: se torniamo a categorie, cerchiamo il primo item per estrarre la Macro
+                let titleToRestore = '';
+                if(prev === 'page-categories') {
+                    const firstMatch = fullData.find(i => i.cat === document.querySelector('#page-categories div span').innerText);
+                    if(firstMatch) titleToRestore = firstMatch.macro;
+                }
+                
+                showPage(prev, titleToRestore);
             }
         }
 
