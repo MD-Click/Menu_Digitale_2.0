@@ -14,47 +14,46 @@
             --back-color: #4f46e5;
             --macro-h: 180px;
             
-            /* Variabili Base Ombre e Card */
+            /* Variabili Card Menu */
             --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
             --menu-card-bg: #ffffff;
             --menu-card-p: 20px;
             --menu-card-r: 24px;
             --menu-card-border: 1px solid #f3f4f6;
             --menu-card-shadow: var(--card-shadow);
+            --item-card-min-h: 120px;
 
-            /* Variabili Tipografiche Piatti */
-            --i-name-f: sans-serif; --i-name-c: #111827; --i-name-s: 18px; --i-name-w: bold; --i-name-mb: 4px;
-            --i-desc-f: sans-serif; --i-desc-c: #6b7280; --i-desc-s: 14px; --i-desc-w: normal; --i-desc-mb: 8px;
-            --i-allg-f: sans-serif; --i-allg-c: #f87171; --i-allg-s: 11px; --i-allg-w: normal; --i-allg-mb: 8px;
-            --i-pric-f: sans-serif; --i-pric-c: #4f46e5; --i-pric-s: 16px; --i-pric-w: bold;
+            /* Tipografia Piatti e Ombre */
+            --i-name-f: sans-serif; --i-name-c: #111827; --i-name-s: 18px; --i-name-w: bold; --i-name-mb: 4px; --i-name-sh: none;
+            --i-desc-f: sans-serif; --i-desc-c: #6b7280; --i-desc-s: 14px; --i-desc-w: normal; --i-desc-mb: 8px; --i-desc-sh: none;
+            --i-allg-f: sans-serif; --i-allg-c: #f87171; --i-allg-s: 11px; --i-allg-w: normal; --i-allg-mb: 8px; --i-allg-sh: none;
+            --i-pric-f: sans-serif; --i-pric-c: #4f46e5; --i-pric-s: 16px; --i-pric-w: bold; --i-pric-sh: none;
+            
+            /* Titoli Macro e Livelli Ombre */
+            --macro-txt-sh: none;
+            --level-txt-sh: none;
+
+            /* Foto Piatti */
+            --i-photo-w: 100px;
+            --i-photo-sh: none;
         }
 
         body {
             background-color: var(--app-bg);
             background-image: var(--app-bg-img, none);
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            min-height: 100vh;
-            font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-            margin: 0;
-            overscroll-behavior-y: none; 
+            background-size: cover; background-position: center; background-attachment: fixed;
+            min-height: 100vh; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; overscroll-behavior-y: none; 
         }
 
-        /* HEADER */
         #main-header {
-            background: var(--header-bg);
-            height: var(--header-h); 
-            position: fixed;
-            top: 0; left: 0; width: 100%; z-index: 999;
+            background: var(--header-bg); height: var(--header-h); 
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
             display: flex; flex-direction: column; justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             padding: 0 20px; transition: all 0.3s ease; overflow: hidden;
         }
         #header-content-wrapper { transition: padding-left 0.3s ease; width: 100%; }
 
-        /* TASTO INDIETRO */
         #back-button {
             position: fixed; left: 15px; width: 44px; height: 44px;
             background: var(--back-bg); color: var(--back-color);
@@ -65,7 +64,6 @@
         #back-button:active { transform: scale(0.9); }
         #back-button.active { display: flex; }
 
-        /* MACRO CLIP (Home) */
         .macro-card {
             height: var(--macro-h); border-radius: 1.25rem;
             background-size: cover; background-position: center;
@@ -74,25 +72,33 @@
         }
         .macro-card:active { transform: scale(0.96); }
         .macro-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); }
+        .macro-text-inside { text-shadow: var(--macro-txt-sh); }
+        .macro-text-outside { text-shadow: var(--macro-txt-sh); }
 
-        /* MENU CLIP (Categorie e Piatti) */
         .menu-card {
             background-color: var(--menu-card-bg);
             padding: var(--menu-card-p);
             border-radius: var(--menu-card-r);
             box-shadow: var(--menu-card-shadow);
             border: var(--menu-card-border);
+            min-height: var(--item-card-min-h); /* Forza altezza minima */
             transition: transform 0.1s ease;
         }
         .menu-card:active { transform: scale(0.98); }
 
-        /* TIPOGRAFIA PIATTI DINAMICA */
-        .item-name { font-family: var(--i-name-f); color: var(--i-name-c); font-size: var(--i-name-s); font-weight: var(--i-name-w); margin-bottom: var(--i-name-mb); line-height: 1.2; }
-        .item-desc { font-family: var(--i-desc-f); color: var(--i-desc-c); font-size: var(--i-desc-s); font-weight: var(--i-desc-w); margin-bottom: var(--i-desc-mb); line-height: 1.4; }
-        .item-allerg { font-family: var(--i-allg-f); color: var(--i-allg-c); font-size: var(--i-allg-s); font-weight: var(--i-allg-w); margin-bottom: var(--i-allg-mb); display: block; }
-        .item-price { font-family: var(--i-pric-f); color: var(--i-pric-c); font-size: var(--i-pric-s); font-weight: var(--i-pric-w); line-height: 1; }
+        .item-name { font-family: var(--i-name-f); color: var(--i-name-c); font-size: var(--i-name-s); font-weight: var(--i-name-w); margin-bottom: var(--i-name-mb); text-shadow: var(--i-name-sh); line-height: 1.2; }
+        .item-desc { font-family: var(--i-desc-f); color: var(--i-desc-c); font-size: var(--i-desc-s); font-weight: var(--i-desc-w); margin-bottom: var(--i-desc-mb); text-shadow: var(--i-desc-sh); line-height: 1.4; }
+        .item-allerg { font-family: var(--i-allg-f); color: var(--i-allg-c); font-size: var(--i-allg-s); font-weight: var(--i-allg-w); margin-bottom: var(--i-allg-mb); text-shadow: var(--i-allg-sh); display: block; }
+        .item-price { font-family: var(--i-pric-f); color: var(--i-pric-c); font-size: var(--i-pric-s); font-weight: var(--i-pric-w); text-shadow: var(--i-pric-sh); line-height: 1; }
 
-        .item-photo { width: 90px; height: 90px; border-radius: 0.75rem; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        /* FOTO PIATTO STRETCH ADATTIVO */
+        .item-photo { 
+            width: var(--i-photo-w); 
+            align-self: stretch; /* Si spalma in altezza seguendo la card */
+            border-radius: 0.75rem; 
+            object-fit: cover; 
+            box-shadow: var(--i-photo-sh); 
+        }
         
         .page-content { animation: pageIn 0.3s ease-out forwards; }
         @keyframes pageIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -134,6 +140,22 @@
         let fullData = [];
         let navigationStack = ['page-macro'];
 
+        // MOTORE OMBRE
+        function getShadow(type, isText = false) {
+            const val = (type || 'none').toLowerCase().trim();
+            if (isText) {
+                if(val === 'light') return '0 1px 2px rgba(0,0,0,0.15)';
+                if(val === 'medium') return '0 2px 4px rgba(0,0,0,0.4)';
+                if(val === 'strong') return '0 3px 6px rgba(0,0,0,0.7)';
+                return 'none';
+            } else {
+                if(val === 'light') return '0 2px 4px rgba(0,0,0,0.1)';
+                if(val === 'medium') return '0 4px 6px rgba(0,0,0,0.15)';
+                if(val === 'strong') return '0 15px 25px -5px rgba(0,0,0,0.2)';
+                return 'none';
+            }
+        }
+
         async function init() {
             if (!SHEET_ID) return document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>ID Cliente Mancante</div>";
             await fetchConfig(); applyConfig(); await fetchMenu();
@@ -159,7 +181,6 @@
         function applyConfig() {
             const root = document.documentElement;
             
-            // Header e Background
             root.style.setProperty('--header-bg', appConfig.Header_BgColor || 'rgba(255, 255, 255, 0.95)');
             root.style.setProperty('--header-h', appConfig.Header_Height || '120px');
             root.style.setProperty('--app-bg', appConfig.Bg_Color || '#f9fafb');
@@ -169,7 +190,7 @@
             root.style.setProperty('--back-bg', appConfig.Back_Btn_Bg || '#fff');
             root.style.setProperty('--back-color', appConfig.Back_Btn_Color || '#000');
 
-            // --- GESTIONE OMBRE (Globale) ---
+            // Applicazione Ombre Globali Box
             let shadowVal = '0 10px 15px -3px rgba(0,0,0,0.1)'; 
             const shadowInt = (appConfig.Card_Shadow_Intensity || 'medium').toLowerCase().trim();
             if(shadowInt === 'light') shadowVal = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
@@ -177,45 +198,54 @@
             else if(shadowInt === 'none') shadowVal = 'none';
             root.style.setProperty('--card-shadow', shadowVal);
 
-            // --- GESTIONE CARD MENU (Clip Toggle On/Off) ---
             if((appConfig.Card_Show_Bg || '').toUpperCase().trim() === 'FALSE') {
                 root.style.setProperty('--menu-card-bg', 'transparent');
                 root.style.setProperty('--menu-card-shadow', 'none');
                 root.style.setProperty('--menu-card-border', 'none');
-                root.style.setProperty('--menu-card-p', '10px 0px'); // Rimuove bordi laterali se trasparente
+                root.style.setProperty('--menu-card-p', '10px 0px'); 
             } else {
                 root.style.setProperty('--menu-card-bg', appConfig.Card_BgColor || '#ffffff');
-                root.style.setProperty('--menu-card-shadow', shadowVal); // Sincronizza ombra
+                root.style.setProperty('--menu-card-shadow', shadowVal); 
                 root.style.setProperty('--menu-card-border', '1px solid rgba(0,0,0,0.03)');
                 root.style.setProperty('--menu-card-p', appConfig.Card_Padding || '20px');
             }
             root.style.setProperty('--menu-card-r', appConfig.Card_Radius || '24px');
+            root.style.setProperty('--item-card-min-h', appConfig.Item_Card_MinHeight || '120px');
 
-            // --- GESTIONE TIPOGRAFIA PIATTI ---
+            // Applicazione Ombre Foto Piatti
+            root.style.setProperty('--i-photo-w', appConfig.Item_Photo_Width || '100px');
+            root.style.setProperty('--i-photo-sh', getShadow(appConfig.Item_Photo_Shadow, false));
+
+            // Tipografia Piatti e Ombre Testi
             root.style.setProperty('--i-name-f', appConfig.Item_Name_Font || 'sans-serif');
             root.style.setProperty('--i-name-c', appConfig.Item_Name_Color || '#111827');
             root.style.setProperty('--i-name-s', appConfig.Item_Name_Size || '18px');
             root.style.setProperty('--i-name-w', (appConfig.Item_Name_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
             root.style.setProperty('--i-name-mb', appConfig.Item_Name_MarginBottom || '4px');
+            root.style.setProperty('--i-name-sh', getShadow(appConfig.Item_Name_Shadow, true));
 
             root.style.setProperty('--i-desc-f', appConfig.Item_Desc_Font || 'sans-serif');
             root.style.setProperty('--i-desc-c', appConfig.Item_Desc_Color || '#6b7280');
             root.style.setProperty('--i-desc-s', appConfig.Item_Desc_Size || '14px');
             root.style.setProperty('--i-desc-w', (appConfig.Item_Desc_Bold || '').toUpperCase() === 'TRUE' ? 'bold' : 'normal');
             root.style.setProperty('--i-desc-mb', appConfig.Item_Desc_MarginBottom || '8px');
+            root.style.setProperty('--i-desc-sh', getShadow(appConfig.Item_Desc_Shadow, true));
 
             root.style.setProperty('--i-allg-f', appConfig.Item_Allerg_Font || 'sans-serif');
             root.style.setProperty('--i-allg-c', appConfig.Item_Allerg_Color || '#f87171');
             root.style.setProperty('--i-allg-s', appConfig.Item_Allerg_Size || '11px');
             root.style.setProperty('--i-allg-w', (appConfig.Item_Allerg_Bold || '').toUpperCase() === 'TRUE' ? 'bold' : 'normal');
             root.style.setProperty('--i-allg-mb', appConfig.Item_Allerg_MarginBottom || '8px');
+            root.style.setProperty('--i-allg-sh', getShadow(appConfig.Item_Allerg_Shadow, true));
 
             root.style.setProperty('--i-pric-f', appConfig.Item_Price_Font || 'sans-serif');
             root.style.setProperty('--i-pric-c', appConfig.Item_Price_Color || '#4f46e5');
             root.style.setProperty('--i-pric-s', appConfig.Item_Price_Size || '16px');
             root.style.setProperty('--i-pric-w', (appConfig.Item_Price_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
+            root.style.setProperty('--i-pric-sh', getShadow(appConfig.Item_Price_Shadow, true));
 
-            // Header Elements (Logo, Sub, ecc - Restano invariati da V9.4)
+            root.style.setProperty('--macro-txt-sh', getShadow(appConfig.Macro_Text_Shadow, true));
+
             const logoCont = document.getElementById('logo-container');
             const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
             logoCont.innerHTML = ''; 
@@ -234,7 +264,8 @@
                 sub.style.cssText = `color:${appConfig.Subtitle_Color || '#666'}; font-size:${appConfig.Subtitle_Size || '14px'}; margin-top:${appConfig.Subtitle_Margin_Top || '5px'}; text-align:${appConfig.Subtitle_Align || 'center'}; font-family:${appConfig.Subtitle_Font || 'sans-serif'};`;
             }
 
-            const levelStyle = `color:${appConfig.Level_Title_Color || '#4f46e5'}; font-size:${appConfig.Level_Title_Size || '16px'}; font-weight:${(appConfig.Level_Title_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold'}; text-align:${appConfig.Level_Title_Align || 'center'}; font-family:${appConfig.Level_Title_Font || 'sans-serif'}; margin-top: 8px; display: none;`;
+            const lvlSh = getShadow(appConfig.Level_Title_Shadow, true);
+            const levelStyle = `color:${appConfig.Level_Title_Color || '#4f46e5'}; font-size:${appConfig.Level_Title_Size || '16px'}; font-weight:${(appConfig.Level_Title_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold'}; text-align:${appConfig.Level_Title_Align || 'center'}; font-family:${appConfig.Level_Title_Font || 'sans-serif'}; text-shadow: ${lvlSh}; margin-top: 8px; display: none;`;
             document.getElementById('level-title-inside').style.cssText = levelStyle;
             document.getElementById('level-title-outside').style.cssText = levelStyle + ' margin-top: 0px; margin-bottom: 20px;'; 
             
@@ -276,17 +307,28 @@
             layoutContainer.className = `page-content ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-6'}`;
             layoutContainer.innerHTML = '';
 
-            macros.forEach(m => {
-                const imgKey = `Macro_Img_${m}`;
-                const imgUrl = appConfig[imgKey] ? appConfig[imgKey].replace(/,/g, '').trim() : '';
-                const bg = (imgUrl && imgUrl !== 'undefined') ? `url('${imgUrl}')` : 'linear-gradient(135deg, #cbd5e1, #f1f5f9)'; 
-                const tPos = (appConfig.Macro_Text_Pos || 'center').toLowerCase().trim(); 
+            const bgType = (appConfig.Macro_Bg_Type || 'image').toLowerCase().trim();
 
+            macros.forEach(m => {
+                let bgStyle = '';
+                if (bgType === 'color') {
+                    bgStyle = `background: ${appConfig.Macro_Bg_Color || '#cbd5e1'};`;
+                } else {
+                    const imgKey = `Macro_Img_${m}`;
+                    const imgUrl = appConfig[imgKey] ? appConfig[imgKey].replace(/,/g, '').trim() : '';
+                    if (imgUrl && imgUrl !== 'undefined') {
+                        bgStyle = `background-image: url('${imgUrl}');`;
+                    } else {
+                        bgStyle = `background: ${appConfig.Macro_Bg_Color || 'linear-gradient(135deg, #cbd5e1, #f1f5f9)'};`;
+                    }
+                }
+
+                const tPos = (appConfig.Macro_Text_Pos || 'center').toLowerCase().trim(); 
                 let html = '';
                 if(tPos === 'outside') {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="background-image:${bg}"></div><span class="text-center mt-2 font-bold text-gray-800 uppercase tracking-wide text-sm">${m}</span></div>`;
+                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold text-gray-800 uppercase tracking-wide text-sm">${m}</span></div>`;
                 } else {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="background-image:${bg}"><div class="macro-overlay"></div><span class="relative z-10 text-white font-extrabold text-xl uppercase tracking-widest" style="text-shadow: 0 2px 4px rgba(0,0,0,0.6);">${m}</span></div>`;
+                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 text-white font-extrabold text-xl uppercase tracking-widest">${m}</span></div>`;
                 }
                 layoutContainer.innerHTML += html;
             });
@@ -323,13 +365,12 @@
                 
                 let allergensHTML = i.allerg ? `<span class="item-allerg">Allergeni: ${i.allerg}</span>` : '';
                 let descHTML = i.desc ? `<p class="item-desc">${i.desc}</p>` : '';
-                let priceHTML = `<span class="item-price">${i.price}</span>`; // Senza Background!
+                let priceHTML = `<span class="item-price">${i.price}</span>`;
 
                 const cleanPhotoUrl = i.photoUrl ? i.photoUrl.replace(/,/g, '').trim() : '';
                 const hasPhoto = cleanPhotoUrl !== '' && cleanPhotoUrl !== 'undefined';
 
                 if (hasPhoto) {
-                    // LAYOUT CON FOTO: Foto a destra, Prezzo in basso a sinistra
                     container.innerHTML += `
                         <div class="menu-card flex justify-between items-stretch gap-4 mb-4">
                             <div class="flex flex-col flex-grow">
@@ -344,7 +385,6 @@
                             <img src="${cleanPhotoUrl}" alt="${i.name}" class="item-photo shrink-0">
                         </div>`;
                 } else {
-                    // LAYOUT SENZA FOTO: Prezzo in linea a destra col Nome
                     container.innerHTML += `
                         <div class="menu-card flex flex-col justify-center mb-4">
                             <div class="flex justify-between items-start gap-4">
