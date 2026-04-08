@@ -101,10 +101,11 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        /* Testo fuori dall'immagine */
+        /* Testo fuori dall'immagine (con fallback colore scuro) */
         .macro-text-outside {
             font-family: var(--macro-font);
-            color: var(--macro-color); /* Qui il colore andrebbe magari scuro se lo sfondo app è chiaro, ma obbediamo al config */
+            /* Se il testo è fuori, forziamo un colore scuro per leggibilità */
+            color: #1f2937; 
             font-weight: bold;
             font-size: 1.1rem;
             text-align: center;
@@ -235,15 +236,15 @@
             } catch(e) { document.getElementById('loading-text').innerText = "Errore caricamento menu."; }
         }
 
-        // --- NUOVO RENDER MACRO CON CLIP FOTOGRAFICHE ---
+        // --- RENDER MACRO CON CLIP FOTOGRAFICHE E FALLBACK ---
         function renderMacro() {
             const container = document.getElementById('page-macro');
             const macros = [...new Set(fullData.map(i => i.macro))];
             
-            // 1. Imposta la griglia o la lista in base alla configurazione
+            // 1. Imposta la griglia o la lista
             const isGrid = (appConfig.Macro_Layout || 'grid').toLowerCase() === 'grid';
             container.className = `page-transition active-page ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-4'}`;
-            container.innerHTML = ''; // Pulisce il titolo, partiamo subito con le clip
+            container.innerHTML = ''; 
 
             // 2. Calcola la posizione del testo
             const tPos = (appConfig.Macro_Text_Pos || 'center').toLowerCase();
@@ -256,7 +257,10 @@
             macros.forEach(m => {
                 // Cerca l'immagine specifica nel config (es. Macro_Img_Cibo)
                 const imgKey = `Macro_Img_${m}`;
-                const bgImage = appConfig[imgKey] ? `url('${appConfig[imgKey]}')` : 'linear-gradient(135deg, #4f46e5, #818cf8)';
+                
+                // --- LOGICA FALLBACK COLORE SOLIDO ELEGANTE E LEGGERO ---
+                // Se l'immagine manca, usa un gradiente lineare elegante e leggero
+                const bgImage = appConfig[imgKey] ? `url('${appConfig[imgKey]}')` : 'linear-gradient(135deg, #e0e7ff, #fdf2f8)'; 
 
                 let cardHTML = '';
 
@@ -270,9 +274,11 @@
                     `;
                 } else {
                     // Stile con testo DENTRO la clip immagine
+                    // Aggiungiamo un overlay scuro solo se c'è un'immagine, per leggibilità del testo bianco
+                    const needsOverlay = appConfig[imgKey] ? '<div class="macro-overlay"></div>' : '';
                     cardHTML = `
                         <div onclick="renderCategories('${m}')" class="macro-card w-full flex ${flexClasses} cursor-pointer" style="background-image: ${bgImage};">
-                            <div class="macro-overlay"></div>
+                            ${needsOverlay}
                             <span class="macro-text">${m}</span>
                         </div>
                     `;
@@ -282,7 +288,7 @@
             });
         }
 
-        // ... (resto delle funzioni renderCategories, renderItems, showPage, goBack identiche alla V6.1)
+        // --- (Resto delle funzioni renderCategories, renderItems, showPage, goBack identiche alla V6.1) ---
         function renderCategories(mName) {
             const container = document.getElementById('page-categories');
             const cats = [...new Set(fullData.filter(i => i.macro === mName).map(i => i.cat))];
