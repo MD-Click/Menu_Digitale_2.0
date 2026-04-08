@@ -23,9 +23,9 @@
             
             --macro-txt-sh: none; --level-txt-sh: none; --level-mb: 25px; 
 
-            /* LARGHEZZA E ALTEZZA FOTO CONTROLLATE DA TE */
-            --i-photo-w: 110px;
-            --i-photo-h: 110px;
+            /* FORMA FOTO PIATTO TOTALMENTE CONTROLLABILE */
+            --i-photo-w: 110px; 
+            --i-photo-h: 110px; 
             --i-photo-sh: none;
 
             /* FILTRI DINAMICI */
@@ -41,6 +41,7 @@
             min-height: 100vh; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; overscroll-behavior-y: none; 
         }
 
+        /* HEADER PRINCIPALE */
         #main-header {
             background: var(--header-bg); height: var(--header-h); 
             position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
@@ -49,6 +50,14 @@
             padding: 0 20px; transition: all 0.3s ease; overflow: hidden;
         }
         #header-content-wrapper { transition: padding-left 0.3s ease; width: 100%; }
+
+        /* NUOVO SUB-HEADER FISSO PER CATEGORIE E FILTRI */
+        #sub-header {
+            background: var(--header-bg); position: fixed; width: 100%; z-index: 998;
+            top: var(--header-h); left: 0; display: none; flex-direction: column; align-items: center;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;
+        }
 
         #back-button {
             position: fixed; left: 15px; width: 44px; height: 44px;
@@ -78,7 +87,6 @@
         .item-allerg { font-family: var(--i-allg-f); color: var(--i-allg-c); font-size: var(--i-allg-s); font-weight: var(--i-allg-w); margin-bottom: var(--i-allg-mb); text-shadow: var(--i-allg-sh); display: block; }
         .item-price { font-family: var(--i-pric-f); color: var(--i-pric-c); font-size: var(--i-pric-s); font-weight: var(--i-pric-w); text-shadow: var(--i-pric-sh); line-height: 1; }
 
-        /* FOTO BLINDATA: NON SI SCHIACCIA MAI */
         .item-photo { 
             width: var(--i-photo-w); 
             height: var(--i-photo-h); 
@@ -88,12 +96,18 @@
             box-shadow: var(--i-photo-sh); 
         }
         
-        .filter-container { margin-top: var(--flt-mt); margin-bottom: var(--flt-mb); display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        /* CONTENITORE FILTRI NELL'HEADER */
+        .filter-container { 
+            display: flex; flex-direction: row; gap: 8px; overflow-x: auto; 
+            padding: 10px 20px 15px 20px; width: 100%; white-space: nowrap; scrollbar-width: none; 
+        }
+        .filter-container::-webkit-scrollbar { display: none; }
         .filter-btn {
             font-family: var(--flt-f); font-size: var(--flt-s); font-weight: var(--flt-w);
             background-color: var(--flt-bg-i); color: var(--flt-c-i);
             padding: 8px 16px; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease;
             text-transform: uppercase; letter-spacing: 0.1em; border: none; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            flex-shrink: 0;
         }
         .filter-btn.active { background-color: var(--flt-bg-a); color: var(--flt-c-a); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
@@ -113,6 +127,11 @@
         </div>
     </header>
 
+    <div id="sub-header">
+        <h2 id="sub-header-title" class="text-[12px] font-black text-gray-500 uppercase tracking-[0.2em] pt-4 px-4 text-center"></h2>
+        <div id="sub-header-filters" class="filter-container justify-center"></div>
+    </div>
+
     <button id="back-button" onclick="goBack()">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
     </button>
@@ -127,7 +146,7 @@
 
         <section id="page-macro" style="display: none;"><div id="macro-layout-container" class="page-content"></div></section>
         <section id="page-categories" style="display: none;" class="page-content space-y-4"></section>
-        <section id="page-items" style="display: none;" class="page-content"></section>
+        <section id="page-items" style="display: none;" class="page-content space-y-4"></section>
     </main>
 
     <script>
@@ -156,7 +175,7 @@
             }
         }
 
-        // IL NUOVO PARSER INDISTRUTTIBILE
+        // IL PARSER INDISTRUTTIBILE (Non blocca mai il codice)
         function safeParseCSVRow(str) {
             let arr = []; let quote = false; let cell = '';
             for (let i = 0; i < str.length; i++) {
@@ -224,7 +243,7 @@
             root.style.setProperty('--cat-card-min-h', appConfig.Category_Card_MinHeight || '80px');
             root.style.setProperty('--item-card-min-h', appConfig.Item_Card_MinHeight || '120px');
 
-            // FOTO LARGHEZZA E ALTEZZA (Senza stretch)
+            // FOTO LARGHEZZA E ALTEZZA
             root.style.setProperty('--i-photo-w', appConfig.Item_Photo_Width || '110px');
             root.style.setProperty('--i-photo-h', appConfig.Item_Photo_Height || '110px');
             root.style.setProperty('--i-photo-sh', getShadow(appConfig.Item_Photo_Shadow, false));
@@ -269,7 +288,7 @@
             root.style.setProperty('--flt-mt', appConfig.Filter_Margin_Top || '10px');
             root.style.setProperty('--flt-mb', appConfig.Filter_Margin_Bottom || '20px');
 
-            // LOGO REATTIVO
+            // LOGO
             const logoCont = document.getElementById('logo-container');
             const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
             logoCont.innerHTML = ''; 
@@ -304,11 +323,18 @@
             else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
         }
 
+        // PADDING DINAMICO: CALCOLA LO SPAZIO DELL'HEADER + SUB-HEADER
         function autoAdjustPadding() {
             setTimeout(() => {
                 const header = document.getElementById('main-header');
+                const subHeader = document.getElementById('sub-header');
                 const mainContent = document.getElementById('main-content');
-                if(header && mainContent) mainContent.style.paddingTop = `calc(${header.offsetHeight}px + 20px)`;
+                
+                let totalH = header.offsetHeight;
+                if(subHeader && subHeader.style.display !== 'none') {
+                    totalH += subHeader.offsetHeight;
+                }
+                if(mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
             }, 50); 
         }
 
@@ -325,7 +351,6 @@
                 for(let i=1; i<rows.length; i++) {
                     if(rows[i].trim() === '') continue;
                     const c = safeParseCSVRow(rows[i]);
-                    // Se la riga è rotta o manca la Macro, salta
                     if(c.length < 3 || !c[0]) continue;
                     
                     fullData.push({
@@ -335,14 +360,13 @@
                     });
                 }
                 
-                // Filtra solo quelli attivi
                 fullData = fullData.filter(i => i.active.toUpperCase() !== 'FALSE'); 
                 
                 document.getElementById('loading-screen').style.display = 'none';
                 renderLevel1();
             } catch (e) { 
                 console.error(e);
-                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>Menu non trovato o in manutenzione.</div>"; 
+                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>Menu non trovato.</div>"; 
             }
         }
 
@@ -396,165 +420,4 @@
         }
 
         function toggleFilter(filterType) {
-            if (activeFilters.includes(filterType)) activeFilters = activeFilters.filter(f => f !== filterType);
-            else activeFilters.push(filterType);
-            
-            const btns = document.getElementById('page-items').querySelectorAll('.filter-btn');
-            for(let btn of btns) {
-                const isMatch = (filterType === 'gf' && btn.innerText.includes('Glutine')) || 
-                                (filterType === 'vegan' && btn.innerText.includes('Vegano')) || 
-                                (filterType === 'veg' && btn.innerText.includes('Vegetariano')) || 
-                                (filterType === 'noalc' && btn.innerText.includes('Analcolico'));
-                if(isMatch) btn.classList.toggle('active');
-            }
-            renderLevel3(currentMacroName, currentCategoryName, true);
-        }
-
-        function renderLevel3(mName, cName, isFiltering = false) {
-            currentMacroName = mName; currentCategoryName = cName;
-            const container = document.getElementById('page-items');
-            
-            if (!isFiltering) {
-                container.innerHTML = '';
-                const levelMb = appConfig.Level_Title_Margin_Bottom || '25px';
-                container.innerHTML += `<div class="text-center mt-2" style="margin-bottom: ${levelMb};"><span class="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] bg-gray-200/50 px-3 py-1 rounded-full">${cName}</span></div>`;
-
-                if ((appConfig.Filter_Show || '').toUpperCase().trim() !== 'FALSE') {
-                    const isDrinks = mName.toLowerCase().match(/bevand|bebid|drink/);
-                    let filterHtml = '<div class="filter-container">';
-                    if (!isDrinks) {
-                        filterHtml += `<button onclick="toggleFilter('gf')" class="filter-btn">Senza Glutine</button>`;
-                        filterHtml += `<button onclick="toggleFilter('vegan')" class="filter-btn">Vegano</button>`;
-                        filterHtml += `<button onclick="toggleFilter('veg')" class="filter-btn">Vegetariano</button>`;
-                    } else {
-                        filterHtml += `<button onclick="toggleFilter('noalc')" class="filter-btn">Analcolico</button>`;
-                    }
-                    filterHtml += '</div>';
-                    container.innerHTML += filterHtml;
-                }
-                container.innerHTML += '<div id="items-list" class="space-y-4"></div>';
-            }
-
-            const itemsList = document.getElementById('items-list');
-            itemsList.innerHTML = '';
-            
-            let items = fullData.filter(i => i.cat === cName && i.macro === mName);
-            if (activeFilters.length > 0) {
-                items = items.filter(i => {
-                    return activeFilters.every(f => {
-                        if(f === 'gf') return (i.gf || '').toUpperCase() === 'TRUE';
-                        if(f === 'vegan') return (i.vegan || '').toUpperCase() === 'TRUE';
-                        if(f === 'veg') return (i.veg || '').toUpperCase() === 'TRUE';
-                        if(f === 'noalc') return (i.noalc || '').toUpperCase() === 'TRUE';
-                        return true;
-                    });
-                });
-            }
-
-            if(items.length === 0) {
-                itemsList.innerHTML = `<div class="text-center text-gray-400 py-10 font-bold">Nessun piatto trovato.</div>`;
-            }
-
-            items.forEach(i => {
-                let badges = '';
-                if(i.gf && i.gf.toUpperCase() === 'TRUE') badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
-                if(i.vegan && i.vegan.toUpperCase() === 'TRUE') badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
-                if(i.veg && i.veg.toUpperCase() === 'TRUE') badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
-                
-                let allergensHTML = i.allerg ? `<span class="item-allerg">Allergeni: ${i.allerg}</span>` : '';
-                let descHTML = i.desc ? `<p class="item-desc">${i.desc}</p>` : '';
-                let priceHTML = `<span class="item-price">${i.price}</span>`;
-
-                const cleanPhotoUrl = i.photoUrl ? i.photoUrl.trim() : '';
-                const hasPhoto = cleanPhotoUrl !== '' && cleanPhotoUrl !== 'undefined';
-
-                if (hasPhoto) {
-                    itemsList.innerHTML += `
-                        <div class="menu-card item-card flex justify-between items-stretch gap-4 mb-4">
-                            <div class="flex flex-col flex-grow">
-                                <div>
-                                    <h3 class="item-name">${i.name}</h3>
-                                    ${descHTML}
-                                    ${allergensHTML}
-                                    <div class="flex flex-wrap">${badges}</div>
-                                </div>
-                                <div class="mt-auto pt-3">${priceHTML}</div>
-                            </div>
-                            <img src="${cleanPhotoUrl}" alt="" onerror="this.style.display='none'" class="item-photo shrink-0">
-                        </div>`;
-                } else {
-                    itemsList.innerHTML += `
-                        <div class="menu-card item-card flex flex-col justify-center mb-4">
-                            <div class="flex justify-between items-start gap-4">
-                                <h3 class="item-name flex-grow">${i.name}</h3>
-                                <div class="shrink-0 text-right pl-2">${priceHTML}</div>
-                            </div>
-                            ${descHTML}
-                            ${allergensHTML}
-                            <div class="flex flex-wrap">${badges}</div>
-                        </div>`;
-                }
-            });
-
-            if (!isFiltering) {
-                navigationStack.push('page-items');
-                showPage('page-items', mName);
-            }
-        }
-
-        function showPage(p, levelTitle = '') {
-            if(p !== 'page-items') activeFilters = [];
-
-            document.getElementById('page-macro').style.display = 'none';
-            document.getElementById('page-categories').style.display = 'none';
-            document.getElementById('page-items').style.display = 'none';
-            document.getElementById(p).style.display = 'block';
-            
-            const contentDiv = document.querySelector(`#${p} .page-content`) || document.getElementById(p);
-            contentDiv.style.animation = 'none'; contentDiv.offsetHeight; 
-            contentDiv.style.animation = 'pageIn 0.3s ease-out forwards';
-
-            const backBtn = document.getElementById('back-button');
-            const titleInside = document.getElementById('level-title-inside');
-            const titleOutside = document.getElementById('level-title-outside');
-            const wrapper = document.getElementById('header-content-wrapper');
-            const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
-            
-            titleInside.style.display = 'none'; titleOutside.style.display = 'none';
-
-            if(p === 'page-macro') {
-                backBtn.classList.remove('active');
-                wrapper.style.paddingLeft = '0px'; 
-            } else {
-                backBtn.classList.add('active');
-                const pos = (appConfig.Back_Btn_Position || 'center').toLowerCase().trim();
-                wrapper.style.paddingLeft = (align === 'left' && pos !== 'outside') ? '45px' : '0px';
-                
-                if((appConfig.Level_Title_Show || '').toUpperCase().trim() !== 'FALSE') {
-                    if((appConfig.Level_Title_Position || 'inside').toLowerCase().trim() === 'outside') {
-                        titleOutside.style.display = 'block'; titleOutside.innerText = levelTitle;
-                    } else {
-                        titleInside.style.display = 'block'; titleInside.innerText = levelTitle;
-                    }
-                }
-            }
-            autoAdjustPadding();
-            window.scrollTo({top: 0, behavior: 'instant'});
-        }
-
-        function goBack() { 
-            if(navigationStack.length > 1) {
-                navigationStack.pop(); 
-                const prev = navigationStack[navigationStack.length-1];
-                let titleToRestore = '';
-                if(prev === 'page-categories') {
-                    const firstMatch = fullData.find(i => i.cat === document.querySelector('#page-items div span').innerText);
-                    if(firstMatch) titleToRestore = firstMatch.macro;
-                }
-                showPage(prev, titleToRestore);
-            }
-        }
-        init();
-    </script>
-</body>
-</html>
+            if (activeFilters.includes(filterType)) activeFilters = activeFilters
