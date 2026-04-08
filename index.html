@@ -9,11 +9,11 @@
         :root {
             --app-bg: #f9fafb;
             --header-bg: rgba(255, 255, 255, 0.95);
-            --header-h: 120px; /* Variabile ripristinata per l'altezza */
+            --header-h: 120px;
             --back-bg: rgba(255, 255, 255, 0.9);
             --back-color: #4f46e5;
             --macro-h: 180px;
-            --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); /* Nuova variabile Ombre */
+            --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); /* Ombra di default */
         }
 
         body {
@@ -28,10 +28,10 @@
             overscroll-behavior-y: none; 
         }
 
-        /* HEADER BLINDATO (Ora rispetta l'altezza al 100%) */
+        /* HEADER BLINDATO (Con altezza fissa reale) */
         #main-header {
             background: var(--header-bg);
-            height: var(--header-h); /* FIX: Comando ripristinato */
+            height: var(--header-h); /* FIX: Altezza forzata e controllata dal config */
             position: fixed;
             top: 0;
             left: 0;
@@ -43,9 +43,15 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.06);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            padding: 0 20px; /* Padding top/bottom rimosso per lasciare controllo all'altezza fissa */
+            padding: 0 20px;
             transition: all 0.3s ease;
-            overflow: hidden; /* Previene sbavature se si restringe troppo */
+            overflow: hidden;
+        }
+
+        /* Wrapper interno per gestire lo spazio del tasto indietro */
+        #header-content-wrapper {
+            transition: padding-left 0.3s ease;
+            width: 100%;
         }
 
         /* TASTO INDIETRO */
@@ -60,7 +66,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            box-shadow: var(--card-shadow); /* Usa la stessa ombra dinamica */
+            box-shadow: var(--card-shadow);
             z-index: 1000;
             cursor: pointer;
             border: 1px solid rgba(0,0,0,0.05);
@@ -69,7 +75,7 @@
         #back-button:active { transform: scale(0.9); }
         #back-button.active { display: flex; }
 
-        /* MACRO E CARD GENERICHE */
+        /* MACRO E CARD GENERICHE (Uso della variabile ombra) */
         .macro-card {
             height: var(--macro-h);
             border-radius: 1.25rem;
@@ -77,14 +83,14 @@
             background-position: center;
             position: relative;
             overflow: hidden;
-            box-shadow: var(--card-shadow); /* Ombra dinamica applicata */
+            box-shadow: var(--card-shadow);
             transition: all 0.2s ease;
         }
         .macro-card:active { transform: scale(0.96); }
         .macro-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); }
 
         .menu-card {
-            box-shadow: var(--card-shadow); /* Ombra dinamica per Categorie e Piatti */
+            box-shadow: var(--card-shadow);
         }
 
         /* FOTO PIATTO */
@@ -106,9 +112,11 @@
 <body>
 
     <header id="main-header">
-        <div id="logo-container" class="w-full flex items-center"></div>
-        <div id="subtitle-container"></div>
-        <div id="level-title-inside" style="display: none; letter-spacing: 0.1em; text-transform: uppercase;"></div>
+        <div id="header-content-wrapper">
+            <div id="logo-container" class="w-full flex items-center"></div>
+            <div id="subtitle-container"></div>
+            <div id="level-title-inside" style="display: none; letter-spacing: 0.1em; text-transform: uppercase;"></div>
+        </div>
     </header>
 
     <button id="back-button" onclick="goBack()">
@@ -116,7 +124,6 @@
     </button>
 
     <main id="main-content" class="px-5 pb-10 max-w-md mx-auto relative">
-        
         <div id="loading-screen" class="flex flex-col items-center pt-20">
             <div class="loader mb-4"></div>
             <p class="text-gray-400 text-sm uppercase tracking-widest">Sincronizzazione...</p>
@@ -159,20 +166,21 @@
                     if(row.trim() === '') return;
                     const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     if(cols.length >= 2) {
+                        // V9.1 PARSER: Legge solo il valore reale, ignora colonne vuote finali
                         const key = cols[0].replace(/^"|"$/g, '').trim();
-                        const val = cols.slice(1).join(',').replace(/^"|"$/g, '').replace(/;/g, ',').trim();
-                        appConfig[key] = val;
+                        const val = cols[1] ? cols[1].replace(/^"|"$/g, '').replace(/;/g, ',').trim() : '';
+                        if(key) appConfig[key] = val;
                     }
                 });
-            } catch(e) { console.error("Errore Lettura Config"); }
+            } catch(e) { console.error("Errore Config"); }
         }
 
         function applyConfig() {
             const root = document.documentElement;
             
-            // Applica Altezza e Colori
+            // Header e Sfondi
             root.style.setProperty('--header-bg', appConfig.Header_BgColor || 'rgba(255, 255, 255, 0.95)');
-            root.style.setProperty('--header-h', appConfig.Header_Height || '120px'); // FIX: Applica altezza a variabile radice
+            root.style.setProperty('--header-h', appConfig.Header_Height || '120px');
             root.style.setProperty('--app-bg', appConfig.Bg_Color || '#f9fafb');
             if(appConfig.Bg_Type === 'image') root.style.setProperty('--app-bg-img', `url('${appConfig.Bg_Image_URL}')`);
             
@@ -180,15 +188,15 @@
             root.style.setProperty('--back-bg', appConfig.Back_Btn_Bg || '#fff');
             root.style.setProperty('--back-color', appConfig.Back_Btn_Color || '#000');
 
-            // --- MOTORE OMBRE ---
-            let shadowVal = '0 10px 15px -3px rgba(0,0,0,0.1)'; // Default (Medium)
+            // --- NUOVO CONTROLLO OMBRE ---
+            let shadowVal = '0 10px 15px -3px rgba(0,0,0,0.1)'; // medium
             const shadowInt = (appConfig.Card_Shadow_Intensity || 'medium').toLowerCase().trim();
             if(shadowInt === 'light') shadowVal = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
             else if(shadowInt === 'strong') shadowVal = '0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1)';
             else if(shadowInt === 'none') shadowVal = 'none';
             root.style.setProperty('--card-shadow', shadowVal);
 
-            // Posizionamento Tasto Indietro basato sulla vera altezza header
+            // Posizione Tasto Indietro basata sulla vera altezza
             const backBtn = document.getElementById('back-button');
             const pos = (appConfig.Back_Btn_Position || 'center').toLowerCase().trim();
             const hHeight = parseInt(appConfig.Header_Height || '120');
@@ -196,10 +204,11 @@
             else if (pos === 'bottom') backBtn.style.top = `calc(${hHeight}px - 55px)`;
             else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
 
-            // Logo
+            // Logo & Allineamento
             const logoCont = document.getElementById('logo-container');
+            const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
             logoCont.innerHTML = ''; 
-            logoCont.className = `w-full flex justify-${(appConfig.Logo_Align || 'center').toLowerCase().trim()}`;
+            logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
             
             const isImage = (appConfig.Logo_Type || '').toLowerCase().trim() === 'image';
             const hasImageUrl = appConfig.Logo_Image_URL && appConfig.Logo_Image_URL.trim() !== '' && appConfig.Logo_Image_URL !== 'undefined';
@@ -273,7 +282,7 @@
 
             macros.forEach(m => {
                 const imgKey = `Macro_Img_${m}`;
-                const imgUrl = appConfig[imgKey];
+                const imgUrl = appConfig[imgKey] ? appConfig[imgKey].replace(/,/g, '').trim() : '';
                 const bg = (imgUrl && imgUrl !== 'undefined') ? `url('${imgUrl}')` : 'linear-gradient(135deg, #cbd5e1, #f1f5f9)'; 
                 const tPos = (appConfig.Macro_Text_Pos || 'center').toLowerCase().trim(); 
 
@@ -294,7 +303,6 @@
             
             container.innerHTML = ''; 
             cats.forEach(c => {
-                // Aggiunta la classe menu-card per le ombre dinamiche
                 container.innerHTML += `
                     <div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="menu-card bg-white p-5 rounded-2xl border border-gray-100 flex justify-between items-center cursor-pointer active:bg-gray-50 mb-3">
                         <span class="font-bold text-gray-800 text-lg">${c}</span>
@@ -322,12 +330,13 @@
                     allergensHTML = `<p class="text-[10px] text-red-400 mt-1">Allergeni: ${i.allerg}</p>`;
                 }
 
+                // Pulizia link foto (V9.1 logic)
                 let photoHTML = '';
-                if(i.photoUrl && i.photoUrl !== 'undefined' && i.photoUrl.trim() !== '') {
-                    photoHTML = `<img src="${i.photoUrl}" alt="${i.name}" class="item-photo shrink-0 ml-3">`;
+                const cleanPhotoUrl = i.photoUrl ? i.photoUrl.replace(/,/g, '').trim() : '';
+                if(cleanPhotoUrl !== '' && cleanPhotoUrl !== 'undefined') {
+                    photoHTML = `<img src="${cleanPhotoUrl}" alt="${i.name}" class="item-photo shrink-0 ml-3">`;
                 }
 
-                // Aggiunta la classe menu-card per le ombre dinamiche
                 container.innerHTML += `
                     <div class="menu-card bg-white p-5 rounded-3xl border border-gray-100 flex justify-between items-stretch gap-2 mb-4">
                         <div class="flex flex-col justify-center flex-grow">
@@ -361,16 +370,25 @@
             const backBtn = document.getElementById('back-button');
             const titleInside = document.getElementById('level-title-inside');
             const titleOutside = document.getElementById('level-title-outside');
+            const wrapper = document.getElementById('header-content-wrapper');
+            const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
             
             titleInside.style.display = 'none';
             titleOutside.style.display = 'none';
 
             if(p === 'page-macro') {
                 backBtn.classList.remove('active');
-                document.body.style.overflow = 'auto'; 
+                wrapper.style.paddingLeft = '0px'; // Resetta lo spazio
             } else {
                 backBtn.classList.add('active');
-                document.body.style.overflow = 'auto';
+                
+                // Zona di sicurezza per il tasto indietro se il testo è a sinistra e il tasto è dentro l'header
+                const pos = (appConfig.Back_Btn_Position || 'center').toLowerCase().trim();
+                if(align === 'left' && pos !== 'outside') {
+                    wrapper.style.paddingLeft = '45px'; 
+                } else {
+                    wrapper.style.paddingLeft = '0px';
+                }
                 
                 if((appConfig.Level_Title_Show || '').toUpperCase().trim() !== 'FALSE') {
                     if((appConfig.Level_Title_Position || 'inside').toLowerCase().trim() === 'outside') {
