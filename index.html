@@ -4,41 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Menu Digitale</title>
-    
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <meta name="google" content="translate">
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
         :root {
-            /* VARIABILI BASE SOVRASCRITTE DAL CONFIG */
-            --app-bg: #f9fafb; 
-            --app-bg-img: none;
-            --app-bg-size: cover;
-            --app-bg-pos: center;
-
+            --app-bg: #f9fafb; --app-bg-img: none; --app-bg-size: cover; --app-bg-pos: center;
             --header-bg: rgba(255, 255, 255, 0.95); --header-h: 120px;
             --back-bg: rgba(255, 255, 255, 0.9); --back-color: #4f46e5; --macro-h: 180px;
-            
             --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
             --menu-card-bg: #ffffff; --menu-card-p: 20px; --menu-card-r: 24px;
             --menu-card-border: 1px solid #f3f4f6; --menu-card-shadow: var(--card-shadow);
-            
             --cat-card-min-h: 80px; --item-card-min-h: 120px;
-
-            /* MACRO E PIATTI TIPOGRAFIA */
             --macro-t-f: sans-serif; --macro-t-c: #ffffff; --macro-t-s: 20px; --macro-txt-sh: none;
-            
             --i-name-f: sans-serif; --i-name-c: #111827; --i-name-s: 18px; --i-name-w: bold; --i-name-mb: 4px; --i-name-sh: none;
             --i-desc-f: sans-serif; --i-desc-c: #6b7280; --i-desc-s: 14px; --i-desc-w: normal; --i-desc-mb: 8px; --i-desc-sh: none;
             --i-allg-f: sans-serif; --i-allg-c: #f87171; --i-allg-s: 11px; --i-allg-w: normal; --i-allg-mb: 8px; --i-allg-sh: none;
             --i-pric-f: sans-serif; --i-pric-c: #4f46e5; --i-pric-s: 16px; --i-pric-w: bold; --i-pric-sh: none;
-            
             --level-txt-sh: none; --level-mb: 25px; 
-
-            /* DIMENSIONI FOTO E FILTRI */
             --i-photo-w: 110px; --i-photo-h: 110px; --i-photo-sh: none;
             --flt-f: sans-serif; --flt-s: 11px; --flt-w: bold;
             --flt-bg-i: #f3f4f6; --flt-c-i: #9ca3af;
@@ -54,7 +36,6 @@
             min-height: 100vh; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; overscroll-behavior-y: none; 
         }
 
-        /* HEADER PRINCIPALE */
         #main-header {
             background: var(--header-bg); min-height: var(--header-h); 
             position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
@@ -64,7 +45,6 @@
         }
         #header-content-wrapper { transition: padding-left 0.3s ease; width: 100%; }
 
-        /* SUB-HEADER PER CATEGORIE E FILTRI */
         #sub-header {
             background: var(--header-bg); 
             position: fixed; width: 100%; z-index: 998; left: 0; display: none; 
@@ -79,19 +59,16 @@
             display: none; align-items: center; justify-content: center; border-radius: 50%;
             box-shadow: var(--card-shadow); z-index: 1000; cursor: pointer; border: 1px solid rgba(0,0,0,0.05); transition: transform 0.1s ease;
         }
-        #back-button:active { transform: scale(0.9); }
         #back-button.active { display: flex; }
 
-        .macro-card { height: var(--macro-h); border-radius: 1.25rem; background-size: cover; background-position: center; position: relative; overflow: hidden; box-shadow: var(--card-shadow); transition: all 0.2s ease; }
+        .macro-card { height: var(--macro-h); border-radius: 1.25rem; background-size: cover; background-position: center; position: relative; overflow: hidden; box-shadow: var(--card-shadow); transition: all 0.2s ease; cursor: pointer;}
         .macro-card:active { transform: scale(0.96); }
         .macro-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); }
         .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.2)); border-radius: inherit; }
         
         .macro-text-inside, .macro-text-outside { 
-            font-family: var(--macro-t-f) !important; 
-            color: var(--macro-t-c) !important; 
-            font-size: var(--macro-t-s) !important; 
-            text-shadow: var(--macro-txt-sh) !important; 
+            font-family: var(--macro-t-f) !important; color: var(--macro-t-c) !important; 
+            font-size: var(--macro-t-s) !important; text-shadow: var(--macro-txt-sh) !important; 
         }
 
         .menu-card {
@@ -100,7 +77,7 @@
             border: var(--menu-card-border); transition: transform 0.1s ease;
         }
         .menu-card:active { transform: scale(0.98); }
-        .cat-card { min-height: var(--cat-card-min-h); position: relative; background-size: cover; background-position: center; overflow: hidden; }
+        .cat-card { min-height: var(--cat-card-min-h); position: relative; background-size: cover; background-position: center; overflow: hidden; cursor: pointer;}
         .item-card { min-height: var(--item-card-min-h); }
 
         .item-name { font-family: var(--i-name-f); color: var(--i-name-c); font-size: var(--i-name-s); font-weight: var(--i-name-w); margin-bottom: var(--i-name-mb); text-shadow: var(--i-name-sh); line-height: 1.2; }
@@ -162,41 +139,29 @@
     </main>
 
     <script>
-        // --- NUKER CACHE POTENZIATO ---
-        // Questo distrugge i Service Worker vecchi che bloccano l'aggiornamento
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) { registration.unregister(); }
-            });
-        }
-
         const urlParams = new URLSearchParams(window.location.search);
         const SHEET_ID = urlParams.get('id'); 
         let appConfig = {};
         let fullData = [];
         let navigationStack = ['page-macro'];
-        
         let activeFilters = []; 
         let currentMacroName = '';
         let currentCategoryName = '';
 
-        // CONVERTITORE URL CLOUD
+        // CONVERTITORE CLOUD
         function formatImgUrl(url) {
             if (!url) return '';
             let formatted = String(url).trim();
             const driveRegex = /drive\.google\.com\/file\/d\/([^\/]+)/;
             const match = formatted.match(driveRegex);
             if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-            
             const openRegex = /drive\.google\.com\/open\?id=([^&]+)/;
             const matchOpen = formatted.match(openRegex);
             if (matchOpen && matchOpen[1]) return `https://drive.google.com/uc?export=view&id=${matchOpen[1]}`;
-            
             if (formatted.includes('dropbox.com') && formatted.includes('dl=0')) return formatted.replace('dl=0', 'raw=1');
             return formatted;
         }
 
-        // LETTURA CHIAVI CASE-INSENSITIVE (IL FIX DEFINITIVO)
         function getVal(key, def) {
             const k = String(key).toLowerCase().trim();
             let v = appConfig[k];
@@ -250,47 +215,40 @@
         }
 
         async function fetchConfig() {
-            // Un trucco ancora più aggressivo per ingannare la cache di Google
-            const randomString = Math.random().toString(36).substring(7);
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config&_t=${Date.now()}&_r=${randomString}`;
+            // Niente headers custom per evitare blocchi CORS sui device mobili
+            const rString = Math.random().toString(36).substring(7);
+            let url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config&_t=${Date.now()}&_r=${rString}`;
             
             try {
-                let response = await fetch(url, { headers: { 'Cache-Control': 'no-cache' } });
+                let response = await fetch(url);
                 let csv = await response.text();
                 
-                // Fallback di sicurezza: Se la scheda "Config" (Maiuscola) fallisce, prova "config" (minuscola)
                 if (!csv.toLowerCase().includes('logo_')) {
-                    const fallbackUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&_t=${Date.now()}&_r=${randomString}`;
-                    response = await fetch(fallbackUrl, { headers: { 'Cache-Control': 'no-cache' } });
+                    url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&_t=${Date.now()}&_r=${rString}`;
+                    response = await fetch(url);
                     csv = await response.text();
                 }
 
-                appConfig = {}; // Resetta l'oggetto per essere sicuri
-                
+                appConfig = {}; 
                 csv.split(/\r?\n/).forEach(row => {
                     if(row.trim() === '') return;
                     const cols = safeParseCSVRow(row);
                     if(cols.length >= 2 && cols[0] !== '') {
                         let key = cols[0].replace(/^"|"$/g, '').replace(/,+$/, '').trim().toLowerCase(); 
                         if(key === 'property') return; 
-                        
                         let val = cols[1] ? cols[1].replace(/^"|"$/g, '').trim() : ''; 
-                        
-                        // Fix colori per Excel IT
                         if(val.toLowerCase().includes('rgba') || val.toLowerCase().includes('rgb')) {
                             val = val.replace(/;/g, ',');
                         }
                         appConfig[key] = val;
                     }
                 });
-                console.log("Config caricata:", appConfig); // DEBUG: Puoi vederlo nella console del browser
-            } catch(e) { console.error("Errore Configurazione:", e); }
+            } catch(e) { console.error("Errore Config:", e); }
         }
 
         function applyConfig() {
             const root = document.documentElement;
             
-            // SFONDO GLOBALE (Assicura priorità massima a "image" o "color")
             const bgType = getVal('Bg_Type', 'color').toLowerCase();
             root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
             
@@ -374,7 +332,6 @@
             root.style.setProperty('--flt-bg-a', getVal('Filter_BgColor_Active', '#4f46e5'));
             root.style.setProperty('--flt-c-a', getVal('Filter_TextColor_Active', '#ffffff'));
 
-            // GESTIONE LOGO DINAMICO CONVERGE QUI
             const logoCont = document.getElementById('logo-container');
             const logoType = getVal('Logo_Type', 'text').toLowerCase();
             const align = getVal('Logo_Align', 'center').toLowerCase();
@@ -395,7 +352,6 @@
                 logoCont.innerHTML = `<h1 style="color:${col}; font-size:${siz}; font-weight:${bld}; font-family:${fnt}; margin:0; line-height:1;">${txt}</h1>`;
             }
 
-            // SOTTOTITOLO
             const sub = document.getElementById('subtitle-container');
             if(!isTruthy('Subtitle_Show', true, true)) {
                 sub.style.display = 'none';
@@ -413,7 +369,6 @@
             document.getElementById('level-title-outside').style.cssText = levelStyle + ` margin-top: 0px; margin-bottom: ${levelMarginB};`; 
         }
 
-        // GEOMETRIA FLUIDA
         function autoAdjustPadding() {
             setTimeout(() => {
                 const header = document.getElementById('main-header');
@@ -440,12 +395,17 @@
         }
 
         async function fetchMenu() {
-            const randomString = Math.random().toString(36).substring(7);
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&_t=${Date.now()}&_r=${randomString}`;
+            const rString = Math.random().toString(36).substring(7);
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Menu&_t=${Date.now()}&_r=${rString}`;
             try {
-                const response = await fetch(url, { headers: { 'Cache-Control': 'no-cache' } });
-                if(!response.ok) throw new Error("Network Error");
-                const csv = await response.text();
+                let response = await fetch(url);
+                let csv = await response.text();
+                
+                if (!csv.toLowerCase().includes('macro')) {
+                    const urlFallback = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&_t=${Date.now()}&_r=${rString}`;
+                    response = await fetch(urlFallback);
+                    csv = await response.text();
+                }
                 
                 fullData = [];
                 const rows = csv.split(/\r?\n/);
@@ -454,7 +414,7 @@
                     if(rows[i].trim() === '') continue;
                     const c = safeParseCSVRow(rows[i]);
                     if(c.length < 3 || !c[0]) continue;
-                    if(c[0].toLowerCase().trim() === 'macro') continue; // Salta l'intestazione
+                    if(c[0].toLowerCase().trim() === 'macro') continue; 
                     
                     fullData.push({
                         macro: c[0] || '', cat: c[1] || '', name: c[2] || '', desc: c[3] || '', 
