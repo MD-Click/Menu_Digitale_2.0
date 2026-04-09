@@ -224,12 +224,16 @@
             const root = document.documentElement;
             
             const bgType = getVal('Bg_Type', 'color').toLowerCase();
-            root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
-            if(bgType === 'image' && getVal('Bg_Image_URL', '') !== '') {
-                root.style.setProperty('--app-bg-img', `url('${getVal('Bg_Image_URL', '')}')`);
-            } else {
-                root.style.setProperty('--app-bg-img', 'none');
-            }
+// Permettiamo all'utente di scrivere image, immagine, img o foto nel CSV
+const isBgImage = ['image', 'immagine', 'img', 'foto'].includes(bgType);
+
+root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
+if(isBgImage && getVal('Bg_Image_URL', '') !== '') {
+    // Risolve un potenziale problema di caching aggiungendo le virgolette corrette
+    root.style.setProperty('--app-bg-img', `url("${getVal('Bg_Image_URL', '')}")`);
+} else {
+    root.style.setProperty('--app-bg-img', 'none');
+}
 
             root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
             root.style.setProperty('--header-h', getVal('Header_Height', '120px'));
@@ -298,17 +302,22 @@
             root.style.setProperty('--flt-c-a', getVal('Filter_TextColor_Active', '#ffffff'));
 
             // LOGO
-            const logoCont = document.getElementById('logo-container');
-            const logoType = getVal('Logo_Type', 'text').toLowerCase();
-            const align = getVal('Logo_Align', 'center').toLowerCase();
-            logoCont.innerHTML = ''; 
-            logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
-            
-            if (logoType === 'image' && getVal('Logo_Image_URL', '') !== '') {
-                logoCont.innerHTML = `<img src="${getVal('Logo_Image_URL', '')}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;" onerror="this.style.display='none'">`;
-            } else {
-                logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')};">${getVal('Logo_Text', 'Menu Digitale')}</h1>`;
-            }
+const logoCont = document.getElementById('logo-container');
+const logoType = getVal('Logo_Type', 'text').toLowerCase();
+// Stessa logica multi-lingua
+const isLogoImage = ['image', 'immagine', 'img', 'foto'].includes(logoType);
+const align = getVal('Logo_Align', 'center').toLowerCase();
+
+logoCont.innerHTML = ''; 
+// Correzione di un piccolo bug di Tailwind sulle stringhe dinamiche
+const alignClass = align === 'left' ? 'justify-start' : align === 'right' ? 'justify-end' : 'justify-center';
+logoCont.className = `w-full flex ${alignClass}`;
+
+if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
+    logoCont.innerHTML = `<img src="${getVal('Logo_Image_URL', '')}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;" onerror="this.style.display='none'; console.error('Errore caricamento logo');">`;
+} else {
+    logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')};">${getVal('Logo_Text', 'Menu Digitale')}</h1>`;
+}
 
             // SUBTITLE
             const sub = document.getElementById('subtitle-container');
