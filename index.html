@@ -7,13 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            /* VARIABILI BASE (Vengono sovrascritte dinamicamente dal foglio) */
+            /* SFONDO GLOBALE */
             --app-bg: #f9fafb; 
             --app-bg-img: none;
             --app-bg-size: cover;
             --app-bg-pos: center;
 
-            --header-bg: rgba(255, 255, 255, 0.95); --header-h: 120px;
+            --header-bg: rgba(255, 255, 255, 0.95); 
+            /* Rimosso --header-h statico per posizionamenti, ora fa tutto JS in modo dinamico */
             --back-bg: rgba(255, 255, 255, 0.9); --back-color: #4f46e5; --macro-h: 180px;
             
             --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
@@ -22,8 +23,8 @@
             
             --cat-card-min-h: 80px; --item-card-min-h: 120px;
 
-            /* MACRO E PIATTI TIPOGRAFIA */
-            --macro-t-f: sans-serif; --macro-t-c: #ffffff; --macro-txt-sh: none;
+            /* TIPOGRAFIA MACRO E PIATTI */
+            --macro-t-f: sans-serif; --macro-t-c: #ffffff; --macro-txt-sh: none; 
             
             --i-name-f: sans-serif; --i-name-c: #111827; --i-name-s: 18px; --i-name-w: bold; --i-name-mb: 4px; --i-name-sh: none;
             --i-desc-f: sans-serif; --i-desc-c: #6b7280; --i-desc-s: 14px; --i-desc-w: normal; --i-desc-mb: 8px; --i-desc-sh: none;
@@ -54,11 +55,13 @@
 
         /* HEADER PRINCIPALE */
         #main-header {
-            background: var(--header-bg); height: var(--header-h); 
+            background: var(--header-bg); 
+            min-height: 50px; /* Altezza minima di sicurezza, si estende se serve */
             position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
             display: flex; flex-direction: column; justify-content: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.06); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: 0 20px; transition: all 0.3s ease; overflow: hidden;
+            padding: 15px 20px; /* Padding fisso interno per respirare */
+            transition: background 0.3s ease; overflow: hidden;
         }
         #header-content-wrapper { transition: padding-left 0.3s ease; width: 100%; }
 
@@ -68,7 +71,6 @@
             position: fixed; 
             width: 100%; 
             z-index: 998;
-            top: var(--header-h); 
             left: 0; 
             display: none; 
             flex-direction: column; 
@@ -77,7 +79,6 @@
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); 
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border-top: 1px solid rgba(0,0,0,0.05); 
-            transition: all 0.3s ease;
         }
 
         #back-button {
@@ -94,7 +95,6 @@
         .macro-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); }
         .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.2)); border-radius: inherit; }
         
-        /* I TESTI DELLE MACRO ORA RISPONDONO AL FOGLIO */
         .macro-text-inside, .macro-text-outside { 
             font-family: var(--macro-t-f) !important;
             color: var(--macro-t-c) !important;
@@ -116,7 +116,6 @@
         .item-allerg { font-family: var(--i-allg-f); color: var(--i-allg-c); font-size: var(--i-allg-s); font-weight: var(--i-allg-w); margin-bottom: var(--i-allg-mb); text-shadow: var(--i-allg-sh); display: block; }
         .item-price { font-family: var(--i-pric-f); color: var(--i-pric-c); font-size: var(--i-pric-s); font-weight: var(--i-pric-w); text-shadow: var(--i-pric-sh); line-height: 1; }
 
-        /* FOTO BLINDATA */
         .item-photo { 
             width: var(--i-photo-w); 
             height: var(--i-photo-h); 
@@ -126,7 +125,6 @@
             box-shadow: var(--i-photo-sh); 
         }
         
-        /* CONTENITORE FILTRI: SU UNA RIGA SCORREVOLE */
         .filter-container { 
             display: flex; flex-direction: row; gap: 8px; overflow-x: auto; 
             padding: 10px 20px 15px 20px; width: 100%; max-w-md; white-space: nowrap; scrollbar-width: none; 
@@ -139,7 +137,6 @@
             text-transform: uppercase; letter-spacing: 0.1em; border: none; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             flex-shrink: 0;
         }
-        /* CLASSE ATTIVA: SOVRASCRITTURA FORZATA PER CAMBIO COLORE */
         .filter-btn.active { background-color: var(--flt-bg-a) !important; color: var(--flt-c-a) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
 
         .ar-badge { background: #111827; color: #ffffff; font-size: 10px; padding: 3px 8px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.1s ease; }
@@ -194,23 +191,19 @@
         let currentMacroName = '';
         let currentCategoryName = '';
 
-        // FUNZIONE TRUTHY BLINDATA PER GESTIRE I "SI"
         function isTruthy(val) {
             if(!val) return false;
             const v = String(val).toUpperCase().trim();
             return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO'].includes(v);
         }
 
-        // IL FILTRO AL PLASMA: Pulisce la stringa e annulla l'effetto distruttivo di "undefined"
         function cleanString(val) {
-            if (val === undefined || val === null || val === '') return '';
-            const cleaned = String(val).replace(/^['"]|['"]$/g, '').trim();
-            if (cleaned.toLowerCase() === 'undefined' || cleaned === '-') return '';
-            return cleaned;
+            if(!val) return '';
+            return String(val).replace(/^['"]|['"]$/g, '').trim(); 
         }
 
         function getShadow(type, isText = false) {
-            const val = cleanString(type).toLowerCase();
+            const val = (type || 'none').toLowerCase().trim();
             if (isText) {
                 if(val === 'light') return '0 1px 2px rgba(0,0,0,0.15)';
                 if(val === 'medium') return '0 2px 4px rgba(0,0,0,0.4)';
@@ -224,7 +217,6 @@
             }
         }
 
-        // PARSER CSV INVINCIBILE
         function safeParseCSVRow(str) {
             let arr = []; let quote = false; let cell = '';
             for (let i = 0; i < str.length; i++) {
@@ -246,12 +238,13 @@
             await fetchConfig(); 
             applyConfig(); 
             await fetchMenu();
+            // Ricalcola gli spazi quando l'utente ruota lo schermo
+            window.addEventListener('resize', autoAdjustPadding);
         }
 
         async function fetchConfig() {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config`;
             try {
-                // Passa header per bypassare pesantemente la cache senza far arrabbiare Google API
                 const response = await fetch(url, { headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache', 'Expires': '0' } });
                 if(!response.ok) throw new Error("Network Error");
                 const csv = await response.text();
@@ -259,9 +252,7 @@
                     if(row.trim() === '') return;
                     const cols = safeParseCSVRow(row);
                     if(cols.length >= 2 && cols[0] !== '') {
-                        // FIX: Rimuove la virgola che Excel inseriva per errore nella chiave "Item_Name_Font,"
                         let key = cols[0].replace(/,+$/, '').trim(); 
-                        // FIX: Converte i punti e virgola in virgole (Excel esporta rgba(255;255;255;1))
                         let val = cols[1] ? cols[1].replace(/;/g, ',').trim() : ''; 
                         appConfig[key] = val;
                     }
@@ -272,7 +263,6 @@
         function applyConfig() {
             const root = document.documentElement;
             
-            // SFONDO DINAMICO GLOBALE
             const bgType = cleanString(appConfig.Bg_Type || 'color').toLowerCase();
             root.style.setProperty('--app-bg', cleanString(appConfig.Bg_Color) || '#f9fafb');
             
@@ -285,7 +275,6 @@
             root.style.setProperty('--app-bg-pos', cleanString(appConfig.Bg_Image_Pos) || 'center');
 
             root.style.setProperty('--header-bg', cleanString(appConfig.Header_BgColor) || 'rgba(255, 255, 255, 0.95)');
-            root.style.setProperty('--header-h', cleanString(appConfig.Header_Height) || '120px');
             root.style.setProperty('--macro-h', cleanString(appConfig.Macro_Height) || '180px');
             root.style.setProperty('--back-bg', cleanString(appConfig.Back_Btn_Bg) || '#fff');
             root.style.setProperty('--back-color', cleanString(appConfig.Back_Btn_Color) || '#000');
@@ -308,17 +297,14 @@
             root.style.setProperty('--cat-card-min-h', cleanString(appConfig.Category_Card_MinHeight) || '80px');
             root.style.setProperty('--item-card-min-h', cleanString(appConfig.Item_Card_MinHeight) || '120px');
 
-            // FOTO LARGHEZZA E ALTEZZA 
             root.style.setProperty('--i-photo-w', cleanString(appConfig.Item_Photo_Width) || '110px');
             root.style.setProperty('--i-photo-h', cleanString(appConfig.Item_Photo_Height) || '110px');
             root.style.setProperty('--i-photo-sh', getShadow(appConfig.Item_Photo_Shadow, false));
 
-            // TIPOGRAFIA MACRO (Fix per i nomi corretti)
             root.style.setProperty('--macro-t-f', cleanString(appConfig.Macro_Text_Font) || 'sans-serif');
             root.style.setProperty('--macro-t-c', cleanString(appConfig.Macro_Text_Color) || '#ffffff');
             root.style.setProperty('--macro-txt-sh', getShadow(appConfig.Macro_Text_Shadow, true));
 
-            // TIPOGRAFIA PIATTI
             root.style.setProperty('--i-name-f', cleanString(appConfig.Item_Name_Font) || 'sans-serif');
             root.style.setProperty('--i-name-c', cleanString(appConfig.Item_Name_Color) || '#111827');
             root.style.setProperty('--i-name-s', cleanString(appConfig.Item_Name_Size) || '18px');
@@ -346,7 +332,6 @@
             root.style.setProperty('--i-pric-w', isTruthy(appConfig.Item_Price_Bold || 'TRUE') ? 'bold' : 'normal');
             root.style.setProperty('--i-pric-sh', getShadow(appConfig.Item_Price_Shadow, true));
             
-            // TIPOGRAFIA FILTRI
             root.style.setProperty('--flt-f', cleanString(appConfig.Filter_Font) || 'sans-serif');
             root.style.setProperty('--flt-s', cleanString(appConfig.Filter_Size) || '11px');
             root.style.setProperty('--flt-w', isTruthy(appConfig.Filter_Bold || 'TRUE') ? 'bold' : 'normal');
@@ -355,7 +340,6 @@
             root.style.setProperty('--flt-bg-a', cleanString(appConfig.Filter_BgColor_Active) || '#4f46e5');
             root.style.setProperty('--flt-c-a', cleanString(appConfig.Filter_TextColor_Active) || '#ffffff');
 
-            // LOGO REATTIVO (Sceglie Testo o Immagine)
             const logoCont = document.getElementById('logo-container');
             const logoType = cleanString(appConfig.Logo_Type || 'text').toLowerCase();
             const align = cleanString(appConfig.Logo_Align || 'center').toLowerCase();
@@ -373,7 +357,6 @@
                 logoCont.innerHTML = `<h1 style="color:${col}; font-size:${siz}; font-weight:${bld}; margin:0; line-height:1; font-family:${fnt};">${txt}</h1>`;
             }
 
-            // SOTTOTITOLO
             const sub = document.getElementById('subtitle-container');
             if(cleanString(appConfig.Subtitle_Show || '').toUpperCase() === 'FALSE') {
                 sub.style.display = 'none';
@@ -390,26 +373,40 @@
             
             const levelMarginB = cleanString(appConfig.Level_Title_Margin_Bottom) || '25px';
             document.getElementById('level-title-outside').style.cssText = levelStyle + ` margin-top: 0px; margin-bottom: ${levelMarginB};`; 
-            
-            const backBtn = document.getElementById('back-button');
-            const hHeight = parseInt(cleanString(appConfig.Header_Height) || '120');
-            const pos = cleanString(appConfig.Back_Btn_Position || 'center').toLowerCase();
-            if (pos === 'center') backBtn.style.top = `calc(${hHeight}px / 2 - 22px)`;
-            else if (pos === 'bottom') backBtn.style.top = `calc(${hHeight}px - 55px)`;
-            else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
         }
 
-        // PADDING DINAMICO: CALCOLA HEADER + SUB-HEADER SE VISIBILE
+        // MOTORE GEOMETRICO: CALCOLA GLI SPAZI REALI SENZA SOVRAPPOSIZIONI
         function autoAdjustPadding() {
             setTimeout(() => {
                 const header = document.getElementById('main-header');
                 const subHeader = document.getElementById('sub-header');
                 const mainContent = document.getElementById('main-content');
-                let totalH = header ? header.offsetHeight : 0;
+                const backBtn = document.getElementById('back-button');
+                
+                // 1. Calcolo l'altezza reale dell'Header
+                let hHeight = header ? header.offsetHeight : 0;
+                
+                // 2. Ancoro il Sub-Header esattamente sotto l'Header
+                if(subHeader) {
+                    subHeader.style.top = hHeight + 'px';
+                }
+
+                // 3. Ancoro il bottone Indietro
+                if(backBtn) {
+                    const pos = cleanString(appConfig.Back_Btn_Position || 'center').toLowerCase();
+                    if (pos === 'center') backBtn.style.top = (hHeight / 2 - 22) + 'px';
+                    else if (pos === 'bottom') backBtn.style.top = (hHeight - 55) + 'px';
+                    else if (pos === 'outside') backBtn.style.top = (hHeight + 15) + 'px';
+                }
+
+                // 4. Sommo le altezze e spingo il contenuto giù
+                let totalH = hHeight;
                 if(subHeader && subHeader.style.display !== 'none') {
                     totalH += subHeader.offsetHeight;
                 }
-                if(mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
+                if(mainContent) {
+                    mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
+                }
             }, 50); 
         }
 
@@ -426,20 +423,17 @@
                 for(let i=1; i<rows.length; i++) {
                     if(rows[i].trim() === '') continue;
                     const c = safeParseCSVRow(rows[i]);
-                    // Se la riga è incompleta o manca la Macro, salta per evitare crash
                     if(c.length < 3 || !c[0]) continue;
                     
                     fullData.push({
                         macro: c[0] || '', cat: c[1] || '', name: c[2] || '', desc: c[3] || '', 
                         allerg: c[4] || '', price: c[5] || '', gf: c[6] || '', vegan: c[7] || '', 
                         veg: c[8] || '', noalc: c[9] || '', active: c[10] !== undefined ? c[10] : 'TRUE', photoUrl: c[11] || '',
-                        ar: c[12] || '' // COLONNA AR (La numero 13 nel tuo file)
+                        ar: c[12] || '' 
                     });
                 }
                 
-                // Filtra solo i piatti attivi usando il controllore "Truthy"
                 fullData = fullData.filter(i => isTruthy(i.active)); 
-                
                 document.getElementById('loading-screen').style.display = 'none';
                 renderLevel1();
             } catch (e) { 
@@ -465,7 +459,7 @@
                 } else {
                     const imgKey = `Macro_Img_${m}`;
                     const imgUrl = cleanString(appConfig[imgKey]);
-                    if (imgUrl) bgStyle = `background-image: url('${imgUrl}');`;
+                    if (imgUrl && imgUrl !== 'undefined') bgStyle = `background-image: url('${imgUrl}');`;
                     else bgStyle = `background: ${cleanString(appConfig.Macro_Bg_Color) || 'linear-gradient(135deg, #cbd5e1, #f1f5f9)'};`;
                 }
 
@@ -496,7 +490,7 @@
 
                 if(showCatPhoto) {
                     const imgUrl = cleanString(appConfig[`Category_Img_${c}`]);
-                    if(imgUrl) {
+                    if(imgUrl && imgUrl !== 'undefined') {
                         bgStyle = `background-image: url('${imgUrl}'); border: none;`;
                         overlayHTML = `<div class="cat-overlay"></div>`;
                         textClass = 'font-extrabold text-white text-lg relative z-10 text-shadow';
@@ -515,19 +509,16 @@
             showPage('page-categories', mName);
         }
 
-        // ESCLUSIVITÀ FILTRI: SOLO UNO ALLA VOLTA (RADIO BUTTON)
         function toggleFilter(filterType) {
-            // Spegne quello attivo se lo clicchi, altrimenti accende solo il nuovo
             if (activeFilters.includes(filterType)) {
                 activeFilters = [];
             } else {
                 activeFilters = [filterType];
             }
             
-            // Aggiornamento Visivo Istantaneo Pulsanti
             const btns = document.getElementById('sub-header-filters').querySelectorAll('.filter-btn');
             btns.forEach(btn => {
-                btn.classList.remove('active'); 
+                btn.classList.remove('active');
                 if(activeFilters.length > 0) {
                     const f = activeFilters[0];
                     const txt = btn.innerText.toLowerCase();
@@ -535,10 +526,9 @@
                                     (f === 'vegan' && txt.includes('vegano')) || 
                                     (f === 'veg' && txt.includes('vegetariano')) || 
                                     (f === 'noalc' && txt.includes('analcolico'));
-                    if(isMatch) btn.classList.add('active'); 
+                    if(isMatch) btn.classList.add('active');
                 }
             });
-            
             renderLevel3(currentMacroName, currentCategoryName, true);
         }
 
@@ -569,7 +559,6 @@
             
             let items = fullData.filter(i => i.cat === cName && i.macro === mName);
             
-            // APPLICA FILTRI ESCLUSIVI (Con la funzione robusta isTruthy)
             if (activeFilters.length > 0) {
                 items = items.filter(i => {
                     return activeFilters.every(f => {
@@ -596,15 +585,14 @@
                 let descHTML = i.desc ? `<p class="item-desc">${i.desc}</p>` : '';
                 let priceHTML = `<span class="item-price">${i.price}</span>`;
 
-                // FUNZIONALITÀ AR: Inietta il tasto se il link esiste ed è valido
                 let arHTML = '';
                 const cleanArUrl = cleanString(i.ar);
-                if (cleanArUrl) {
+                if (cleanArUrl && cleanArUrl !== '-' && cleanArUrl !== 'undefined') {
                     arHTML = `<a href="${cleanArUrl}" target="_blank" class="ar-badge"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg> VEDI AR</a>`;
                 }
 
                 const cleanPhotoUrl = cleanString(i.photoUrl);
-                const hasPhoto = cleanPhotoUrl !== '';
+                const hasPhoto = cleanPhotoUrl !== '' && cleanPhotoUrl !== 'undefined' && cleanPhotoUrl !== '-';
 
                 if (hasPhoto) {
                     container.innerHTML += `
@@ -671,8 +659,7 @@
                 wrapper.style.paddingLeft = '0px'; 
             } else {
                 backBtn.classList.add('active');
-                const pos = cleanString(appConfig.Back_Btn_Position || 'center').toLowerCase();
-                wrapper.style.paddingLeft = (align === 'left' && pos !== 'outside') ? '45px' : '0px';
+                wrapper.style.paddingLeft = (align === 'left' && cleanString(appConfig.Back_Btn_Position).toLowerCase() !== 'outside') ? '45px' : '0px';
                 
                 if(p === 'page-items') {
                     subHeader.style.display = 'flex'; 
