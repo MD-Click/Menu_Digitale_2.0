@@ -85,7 +85,6 @@
         .macro-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); }
         .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.2)); border-radius: inherit; }
         
-        /* TESTI DELLE MACRO ORA CONTROLLANO ANCHE LA DIMENSIONE */
         .macro-text-inside, .macro-text-outside { 
             font-family: var(--macro-t-f) !important; 
             color: var(--macro-t-c) !important; 
@@ -171,7 +170,7 @@
         let currentMacroName = '';
         let currentCategoryName = '';
 
-        // FUNZIONI DI PULIZIA DATI DA EXCEL/CSV
+        // FUNZIONI DI PULIZIA E LETTURA DATI
         function cleanString(val) {
             if (val === undefined || val === null || val === '') return '';
             const cleaned = String(val).replace(/^['"]|['"]$/g, '').trim();
@@ -251,7 +250,6 @@
         function applyConfig() {
             const root = document.documentElement;
             
-            // SFONDO
             const bgType = getVal('Bg_Type', 'color').toLowerCase();
             root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
             if(bgType === 'image' && getVal('Bg_Image_URL', '') !== '') {
@@ -262,7 +260,6 @@
             root.style.setProperty('--app-bg-size', getVal('Bg_Image_Size', 'cover'));
             root.style.setProperty('--app-bg-pos', getVal('Bg_Image_Pos', 'center'));
 
-            // HEADER & CARD
             root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
             root.style.setProperty('--header-h', getVal('Header_Height', '120px'));
             root.style.setProperty('--macro-h', getVal('Macro_Height', '180px'));
@@ -292,7 +289,6 @@
             root.style.setProperty('--i-photo-h', getVal('Item_Photo_Height', '110px'));
             root.style.setProperty('--i-photo-sh', getShadow('Item_Photo_Shadow', false));
 
-            // TIPOGRAFIA MACRO (Con il nuovo parametro Size)
             root.style.setProperty('--macro-t-f', getVal('Macro_Text_Font', 'sans-serif'));
             root.style.setProperty('--macro-t-c', getVal('Macro_Text_Color', '#ffffff'));
             root.style.setProperty('--macro-t-s', getVal('Macro_Text_Size', '20px'));
@@ -325,7 +321,6 @@
             root.style.setProperty('--i-pric-w', isTruthy('Item_Price_Bold', true, true) ? 'bold' : 'normal');
             root.style.setProperty('--i-pric-sh', getShadow('Item_Price_Shadow', true));
             
-            // FILTRI
             root.style.setProperty('--flt-f', getVal('Filter_Font', 'sans-serif'));
             root.style.setProperty('--flt-s', getVal('Filter_Size', '11px'));
             root.style.setProperty('--flt-w', isTruthy('Filter_Bold', true, true) ? 'bold' : 'normal');
@@ -334,17 +329,27 @@
             root.style.setProperty('--flt-bg-a', getVal('Filter_BgColor_Active', '#4f46e5'));
             root.style.setProperty('--flt-c-a', getVal('Filter_TextColor_Active', '#ffffff'));
 
-            // LOGO
+            // LOGO DINAMICO CON CONTROLLI COMPLETI
             const logoCont = document.getElementById('logo-container');
             const logoType = getVal('Logo_Type', 'text').toLowerCase();
             const align = getVal('Logo_Align', 'center').toLowerCase();
             logoCont.innerHTML = ''; 
+            
+            // Imposta l'allineamento tramite flexbox
             logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
             
             if (logoType === 'image' && getVal('Logo_Image_URL', '') !== '') {
-                logoCont.innerHTML = `<img src="${getVal('Logo_Image_URL', '')}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;" onerror="this.style.display='none'">`;
+                // SE È IMMAGINE: Usa Logo_Image_Size per limitare l'altezza massima
+                const imgSize = getVal('Logo_Image_Size', '60px');
+                logoCont.innerHTML = `<img src="${getVal('Logo_Image_URL', '')}" style="max-height:${imgSize}; object-fit:contain;" onerror="this.style.display='none'">`;
             } else {
-                logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true, true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')};">${getVal('Logo_Text', 'Menu')}</h1>`;
+                // SE È TESTO: Usa i font, i colori e le dimensioni
+                let txt = getVal('Logo_Text', 'Menu Digitale');
+                let col = getVal('Logo_Text_Color', '#000');
+                let siz = getVal('Logo_Text_Size', '28px');
+                let fnt = getVal('Logo_Text_Font', 'sans-serif');
+                let bld = isTruthy('Logo_Text_Bold', true, true) ? 'bold' : 'normal';
+                logoCont.innerHTML = `<h1 style="color:${col}; font-size:${siz}; font-weight:${bld}; font-family:${fnt}; margin:0; line-height:1;">${txt}</h1>`;
             }
 
             // Sottotitolo
@@ -403,13 +408,12 @@
                     fullData.push({
                         macro: c[0] || '', cat: c[1] || '', name: c[2] || '', desc: c[3] || '', 
                         allerg: c[4] || '', price: c[5] || '', gf: c[6] || '', vegan: c[7] || '', 
-                        veg: c[8] || '', noalc: c[9] || '', 
-                        active: c[10] !== undefined ? c[10] : 'TRUE', 
-                        photoUrl: c[11] || '', ar: c[12] || '' 
+                        veg: c[8] || '', noalc: c[9] || '', active: c[10] !== undefined ? c[10] : 'TRUE', photoUrl: c[11] || '',
+                        ar: c[12] || '' 
                     });
                 }
                 
-                fullData = fullData.filter(i => isTruthy(i.active, false)); 
+                fullData = fullData.filter(i => isTruthy(i.active, false, true)); 
                 
                 document.getElementById('loading-screen').style.display = 'none';
                 renderLevel1();
@@ -441,11 +445,10 @@
 
                 const tPos = getVal('Macro_Text_Pos', 'center').toLowerCase(); 
                 let html = '';
-                
                 if(tPos === 'outside') {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold uppercase tracking-wide" style="line-height:1.2;">${m}</span></div>`;
+                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold uppercase tracking-wide text-sm">${m}</span></div>`;
                 } else {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 font-extrabold uppercase tracking-widest text-center px-2" style="line-height:1.2;">${m}</span></div>`;
+                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 font-extrabold uppercase tracking-widest text-center px-2">${m}</span></div>`;
                 }
                 layoutContainer.innerHTML += html;
             });
@@ -486,7 +489,6 @@
             showPage('page-categories', mName);
         }
 
-        // LOGICA FILTRI RADIO
         function toggleFilter(filterType) {
             if (activeFilters.includes(filterType)) {
                 activeFilters = [];
@@ -540,10 +542,10 @@
             if (activeFilters.length > 0) {
                 items = items.filter(i => {
                     return activeFilters.every(f => {
-                        if(f === 'gf') return isTruthy(i.gf, false);
-                        if(f === 'vegan') return isTruthy(i.vegan, false);
-                        if(f === 'veg') return isTruthy(i.veg, false);
-                        if(f === 'noalc') return isTruthy(i.noalc, false);
+                        if(f === 'gf') return isTruthy(i.gf, false, false);
+                        if(f === 'vegan') return isTruthy(i.vegan, false, false);
+                        if(f === 'veg') return isTruthy(i.veg, false, false);
+                        if(f === 'noalc') return isTruthy(i.noalc, false, false);
                         return true;
                     });
                 });
@@ -555,11 +557,11 @@
 
             items.forEach(i => {
                 let badges = '';
-                if(isTruthy(i.gf, false)) badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
-                if(isTruthy(i.vegan, false)) badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
-                if(isTruthy(i.veg, false)) badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
+                if(isTruthy(i.gf, false, false)) badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
+                if(isTruthy(i.vegan, false, false)) badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
+                if(isTruthy(i.veg, false, false)) badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
                 
-                let allergensHTML = i.allerg && i.allerg !== '-' ? `<span class="item-allerg">${i.allerg}</span>` : '';
+                let allergensHTML = i.allerg && i.allerg !== '-' ? `<span class="item-allerg">Allergeni: ${i.allerg}</span>` : '';
                 let descHTML = i.desc && i.desc !== '-' ? `<p class="item-desc">${i.desc}</p>` : '';
                 let priceHTML = `<span class="item-price">${i.price}</span>`;
 
