@@ -25,10 +25,9 @@
             
             --cat-card-min-h: 80px; --item-card-min-h: 120px;
 
-            /* MACRO TIPOGRAFIA */
+            /* MACRO E PIATTI TIPOGRAFIA */
             --macro-t-f: sans-serif; --macro-t-c: #ffffff; --macro-t-s: 20px; --macro-txt-sh: none;
             
-            /* PIATTI TIPOGRAFIA */
             --i-name-f: sans-serif; --i-name-c: #111827; --i-name-s: 18px; --i-name-w: bold; --i-name-mb: 4px; --i-name-sh: none;
             --i-desc-f: sans-serif; --i-desc-c: #6b7280; --i-desc-s: 14px; --i-desc-w: normal; --i-desc-mb: 8px; --i-desc-sh: none;
             --i-allg-f: sans-serif; --i-allg-c: #f87171; --i-allg-s: 11px; --i-allg-w: normal; --i-allg-mb: 8px; --i-allg-sh: none;
@@ -54,7 +53,7 @@
             min-height: 100vh; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; overscroll-behavior-y: none; 
         }
 
-        /* HEADER PRINCIPALE (min-height per non schiacciare loghi grandi) */
+        /* HEADER PRINCIPALE */
         #main-header {
             background: var(--header-bg); min-height: var(--header-h); 
             position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
@@ -64,6 +63,7 @@
         }
         #header-content-wrapper { transition: padding-left 0.3s ease; width: 100%; }
 
+        /* SUB-HEADER PER CATEGORIE E FILTRI */
         #sub-header {
             background: var(--header-bg); 
             position: fixed; width: 100%; z-index: 998; left: 0; display: none; 
@@ -171,34 +171,28 @@
         let currentMacroName = '';
         let currentCategoryName = '';
 
-        // --- 1. IL CONVERTITORE MAGICO PER GOOGLE DRIVE E DROPBOX ---
+        // CONVERTITORE URL CLOUD
         function formatImgUrl(url) {
             if (!url) return '';
             let formatted = String(url).trim();
-            // Converte i link Google Drive classici in link immagine diretti
             const driveRegex = /drive\.google\.com\/file\/d\/([^\/]+)/;
             const match = formatted.match(driveRegex);
-            if (match && match[1]) {
-                return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-            }
-            // Converte i link Google Drive open?id=
+            if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            
             const openRegex = /drive\.google\.com\/open\?id=([^&]+)/;
             const matchOpen = formatted.match(openRegex);
-            if (matchOpen && matchOpen[1]) {
-                return `https://drive.google.com/uc?export=view&id=${matchOpen[1]}`;
-            }
-            // Converte Dropbox
+            if (matchOpen && matchOpen[1]) return `https://drive.google.com/uc?export=view&id=${matchOpen[1]}`;
+            
             if (formatted.includes('dropbox.com') && formatted.includes('dl=0')) {
                 return formatted.replace('dl=0', 'raw=1');
             }
             return formatted;
         }
 
-        // SCANNER CASE-INSENSITIVE (Trova i parametri anche se scritti in minuscolo)
+        // LETTURA CHIAVI CASE-INSENSITIVE (IL FIX DEFINITIVO)
         function getVal(key, def) {
-            const lowerKey = key.toLowerCase();
-            const foundKey = Object.keys(appConfig).find(k => k.toLowerCase() === lowerKey);
-            let v = foundKey ? appConfig[foundKey] : undefined;
+            const k = String(key).toLowerCase().trim();
+            let v = appConfig[k];
             if (v === undefined || v === null || v === '' || String(v).toLowerCase() === 'undefined' || v === '-') return def;
             return String(v).trim();
         }
@@ -206,7 +200,7 @@
         function isTruthy(keyOrValue, isConfigKey = true, defaultVal = true) {
             let v = isConfigKey ? getVal(keyOrValue, defaultVal ? 'TRUE' : 'FALSE') : (keyOrValue || '');
             v = String(v).toUpperCase().trim();
-            return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO', 'ON', 'IMMAGINE', 'IMAGE'].includes(v);
+            return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO', 'ON', 'IMAGE', 'IMMAGINE'].includes(v);
         }
 
         function getShadow(type, isText = false) {
@@ -245,6 +239,7 @@
             await fetchConfig(); 
             applyConfig(); 
             await fetchMenu();
+            window.addEventListener('resize', autoAdjustPadding);
         }
 
         async function fetchConfig() {
@@ -253,17 +248,15 @@
                 const response = await fetch(url);
                 if(!response.ok) throw new Error("Network Error");
                 const csv = await response.text();
-                csv.split(/\r?\n/).slice(1).forEach(row => {
+                csv.split(/\r?\n/).forEach(row => {
                     if(row.trim() === '') return;
                     const cols = safeParseCSVRow(row);
                     if(cols.length >= 2 && cols[0] !== '') {
-                        let key = cols[0].replace(/^"|"$/g, '').replace(/,+$/, '').trim(); 
-                        let val = cols[1] ? cols[1].replace(/^"|"$/g, '').trim() : ''; 
+                        // FIX: Tutto convertito in minuscolo, tolte le virgole accidentali
+                        let key = cols[0].replace(/^"|"$/g, '').replace(/,+$/, '').trim().toLowerCase(); 
+                        if(key === 'property') return; // Ignora l'intestazione dinamicamente
                         
-                        // Ripara i colori rgba rovinati da Excel
-                        if(val.toLowerCase().includes('rgba') || val.toLowerCase().includes('rgb')) {
-                            val = val.replace(/;/g, ',');
-                        }
+                        let val = cols[1] ? cols[1].replace(/^"|"$/g, '').replace(/;/g, ',').trim() : ''; 
                         appConfig[key] = val;
                     }
                 });
@@ -273,9 +266,10 @@
         function applyConfig() {
             const root = document.documentElement;
             
-            // SFONDO E LOGO: Usa la funzione formatImgUrl per i link Cloud
+            // SFONDO
             const bgType = getVal('Bg_Type', 'color').toLowerCase();
             root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
+            
             if(bgType.includes('imag') || bgType === 'img') {
                 root.style.setProperty('--app-bg-img', `url('${formatImgUrl(getVal('Bg_Image_URL', ''))}')`);
             } else {
@@ -313,6 +307,7 @@
             root.style.setProperty('--i-photo-h', getVal('Item_Photo_Height', '110px'));
             root.style.setProperty('--i-photo-sh', getShadow('Item_Photo_Shadow', false));
 
+            // TIPOGRAFIA MACRO
             root.style.setProperty('--macro-t-f', getVal('Macro_Text_Font', 'sans-serif'));
             root.style.setProperty('--macro-t-c', getVal('Macro_Text_Color', '#ffffff'));
             root.style.setProperty('--macro-t-s', getVal('Macro_Text_Size', '20px'));
@@ -360,13 +355,11 @@
             logoCont.innerHTML = ''; 
             logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
             
-            const isLogoImg = logoType.includes('imag') || logoType.includes('immagin') || logoType === 'img';
-            const rawLogoUrl = getVal('Logo_Image_URL', '');
-            const logoUrl = formatImgUrl(rawLogoUrl); // CONVERSIONE DRIVE/DROPBOX IN CORSO
+            const isLogoImg = logoType.includes('imag') || logoType.includes('img');
+            const logoUrl = formatImgUrl(getVal('Logo_Image_URL', ''));
 
             if (isLogoImg && logoUrl !== '') {
-                // Rimosso l'onerror hidden, così se c'è un errore si capisce
-                logoCont.innerHTML = `<img src="${logoUrl}" alt="Logo" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain; max-width:100%;">`;
+                logoCont.innerHTML = `<img src="${logoUrl}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;" onerror="this.style.display='none'">`;
             } else {
                 let txt = getVal('Logo_Text', 'Menu Digitale');
                 let col = getVal('Logo_Text_Color', '#000');
@@ -394,7 +387,7 @@
             document.getElementById('level-title-outside').style.cssText = levelStyle + ` margin-top: 0px; margin-bottom: ${levelMarginB};`; 
         }
 
-        // GEOMETRIA FLUIDA
+        // GEOMETRIA
         function autoAdjustPadding() {
             setTimeout(() => {
                 const header = document.getElementById('main-header');
@@ -430,10 +423,11 @@
                 fullData = [];
                 const rows = csv.split(/\r?\n/);
                 
-                for(let i=1; i<rows.length; i++) {
+                for(let i=0; i<rows.length; i++) {
                     if(rows[i].trim() === '') continue;
                     const c = safeParseCSVRow(rows[i]);
                     if(c.length < 3 || !c[0]) continue;
+                    if(c[0].toLowerCase().trim() === 'macro') continue; // Salta esplicitamente l'intestazione
                     
                     fullData.push({
                         macro: c[0] || '', cat: c[1] || '', name: c[2] || '', desc: c[3] || '', 
@@ -616,7 +610,7 @@
                                 </div>
                                 <div class="mt-auto pt-3">${priceHTML}</div>
                             </div>
-                            <img src="${cleanPhotoUrl}" alt="" class="item-photo shrink-0">
+                            <img src="${cleanPhotoUrl}" alt="" onerror="this.style.display='none'" class="item-photo shrink-0">
                         </div>`;
                 } else {
                     container.innerHTML += `
