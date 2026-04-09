@@ -8,7 +8,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // Funzione per caricare il CSV esterno
-async function loadExternalCSV(https://docs.google.com/spreadsheets/d/e/2PACX-1vRZVourc8K5zUyaEPtAkjvD_gkByopMMQbMDUyJJu2IyF9YjgEjMOBZJHBrkOgvQCEDmxV6PmjwoRO9/pubhtml) {
+async function loadExternalCSV(url) {
     try {
         const response = await fetch(url);
         const csvString = await response.text();
@@ -32,6 +32,8 @@ function renderData(data) {
     const output = document.getElementById('output');
     output.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
 }
+// Chiamata alla funzione con l'URL corretto per il CSV
+loadExternalCSV('https://docs.google.com/spreadsheets/d/1zBHQm3c_Ia_051eXA1soZcgEo1Pq40ZhhRmzSYKqTgc/export?format=csv&gid=0');
 
 // Esempio di utilizzo:
 // loadExternalCSV('https://tuo-url.com/file.csv');
