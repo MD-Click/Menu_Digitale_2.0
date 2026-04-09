@@ -561,4 +561,99 @@
                                 <div>
                                     <h3 class="item-name">${i.name}</h3>
                                     ${descHTML}
-                                    ${allergensHTML
+                                    ${allergensHTML}
+                                    <div class="flex flex-wrap">${badges}</div>
+                                    ${arHTML}
+                                </div>
+                                <div class="mt-auto pt-3">${priceHTML}</div>
+                            </div>
+                            <img src="${cleanPhotoUrl}" alt="" onerror="this.style.display='none'" class="item-photo shrink-0">
+                        </div>`;
+                } else {
+                    container.innerHTML += `
+                        <div class="menu-card item-card flex flex-col justify-center mb-4">
+                            <div class="flex justify-between items-start gap-4">
+                                <h3 class="item-name flex-grow">${i.name}</h3>
+                                <div class="shrink-0 text-right pl-2">${priceHTML}</div>
+                            </div>
+                            ${descHTML}
+                            ${allergensHTML}
+                            <div class="flex flex-wrap">${badges}</div>
+                            ${arHTML}
+                        </div>`;
+                }
+            });
+
+            if (!isFiltering) {
+                navigationStack.push('page-items');
+                showPage('page-items', mName);
+            }
+        }
+
+        function showPage(p, levelTitle = '') {
+            if(p !== 'page-items') activeFilters = [];
+
+            document.getElementById('page-macro').style.display = 'none';
+            document.getElementById('page-categories').style.display = 'none';
+            document.getElementById('page-items').style.display = 'none';
+            document.getElementById(p).style.display = 'block';
+            
+            const contentDiv = document.querySelector(`#${p} .page-content`) || document.getElementById(p);
+            if(contentDiv) {
+                contentDiv.style.animation = 'none'; contentDiv.offsetHeight; 
+                contentDiv.style.animation = 'pageIn 0.3s ease-out forwards';
+            }
+
+            const backBtn = document.getElementById('back-button');
+            const subHeader = document.getElementById('sub-header');
+            const titleInside = document.getElementById('level-title-inside');
+            const titleOutside = document.getElementById('level-title-outside');
+            const wrapper = document.getElementById('header-content-wrapper');
+            const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
+            
+            titleInside.style.display = 'none'; titleOutside.style.display = 'none';
+
+            if(p === 'page-macro') {
+                backBtn.classList.remove('active');
+                subHeader.style.display = 'none';
+                wrapper.style.paddingLeft = '0px'; 
+            } else {
+                backBtn.classList.add('active');
+                const pos = (appConfig.Back_Btn_Position || 'center').toLowerCase().trim();
+                wrapper.style.paddingLeft = (align === 'left' && pos !== 'outside') ? '45px' : '0px';
+                
+                if(p === 'page-items') {
+                    subHeader.style.display = 'flex'; 
+                } else {
+                    subHeader.style.display = 'none';
+                    if((appConfig.Level_Title_Show || '').toUpperCase().trim() !== 'FALSE') {
+                        if((appConfig.Level_Title_Position || 'inside').toLowerCase().trim() === 'outside') {
+                            titleOutside.style.display = 'block'; titleOutside.innerText = levelTitle;
+                        } else {
+                            titleInside.style.display = 'block'; titleInside.innerText = levelTitle;
+                        }
+                    }
+                }
+            }
+            
+            autoAdjustPadding();
+            window.scrollTo({top: 0, behavior: 'instant'});
+        }
+
+        function goBack() { 
+            if(navigationStack.length > 1) {
+                navigationStack.pop(); 
+                const prev = navigationStack[navigationStack.length-1];
+                let titleToRestore = '';
+                if(prev === 'page-categories') {
+                    const firstMatch = fullData.find(i => i.cat === document.getElementById('sub-header-title').innerText);
+                    if(firstMatch) titleToRestore = firstMatch.macro;
+                }
+                showPage(prev, titleToRestore);
+            }
+        }
+        
+        init();
+    </script>
+</body>
+</html>
