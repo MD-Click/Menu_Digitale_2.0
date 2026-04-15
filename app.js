@@ -26,8 +26,8 @@ function escapeJS(str) {
 
 function cleanString(val) {
     if (val === undefined || val === null || val === '') return '';
-    // Rimuove virgolette esterne e spazi
-    let cleaned = String(val).trim().replace(/^["']|["']$/g, '').trim();
+    // Rimuove virgolette esterne, spazi, e distrugge le VIRGOLE FINALI!
+    let cleaned = String(val).trim().replace(/^["']|["']$/g, '').replace(/,+$/, '').trim();
     if (cleaned.toLowerCase() === 'undefined' || cleaned === '-') return '';
     return cleaned;
 }
