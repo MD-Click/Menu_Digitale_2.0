@@ -191,7 +191,7 @@ function applyConfig() {
     root.style.setProperty('--flt-bg-a', getVal('Filter_BgColor_Active', '#4f46e5'));
     root.style.setProperty('--flt-c-a', getVal('Filter_TextColor_Active', '#ffffff'));
 
-    // LOGO - Gestione Sicura e Allineata
+   // LOGO - Gestione Sicura e Allineata
     const logoCont = document.getElementById('logo-container');
     const logoType = getVal('Logo_Type', 'text').toLowerCase();
     const align = getVal('Logo_Align', 'center').toLowerCase();
@@ -201,7 +201,8 @@ function applyConfig() {
     
     if (logoType === 'image' && getVal('Logo_Image_URL', '') !== '') {
         const url = escapeHTML(getVal('Logo_Image_URL', ''));
-        logoCont.innerHTML = `<img src="${url}" style="max-height:${escapeHTML(getVal('Logo_Image_Size', '60px'))}; object-fit:contain;" alt="Logo Menu">`;
+        // Aggiunto onload="updateLayout()" per ricalcolare tutto quando l'immagine è pronta
+        logoCont.innerHTML = `<img src="${url}" style="max-height:${escapeHTML(getVal('Logo_Image_Size', '60px'))}; object-fit:contain;" alt="Logo Menu" onload="updateLayout()">`;
     } else {
         const text = escapeHTML(getVal('Logo_Text', 'Menu'));
         logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true, true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')}; text-align:${align}; width:100%;">${text}</h1>`;
