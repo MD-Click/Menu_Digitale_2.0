@@ -3,16 +3,25 @@
 :root {
     --header-bg: rgba(255, 255, 255, 0.95);
     --header-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    /* Nuove variabili per le Macro (Modulo 5) */
+    --macro-cols: 2;
+    --macro-height: 180px;
+    --macro-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    --macro-text-color: #ffffff;
+    --macro-text-font: sans-serif;
+    --macro-text-weight: bold;
+    --macro-text-shadow: 0px 2px 4px rgba(0,0,0,0.8);
+    --macro-align-v: center;
+    --macro-align-h: center;
 }
 
 body {
-    /* Nuove variabili per il Modulo 4 (Sfondo) */
     background-color: var(--app-bg-color, #f9fafb);
     background-image: var(--app-bg-image, none);
     background-size: var(--app-bg-size, cover);
     background-position: var(--app-bg-position, center);
     background-repeat: no-repeat;
-    background-attachment: fixed; /* Mantiene lo sfondo fermo mentre si scorre il menu */
+    background-attachment: fixed; 
     min-height: 100vh;
     font-family: ui-sans-serif, system-ui, sans-serif;
     color: #111827;
@@ -38,22 +47,47 @@ body {
 }
 
 #logo-container { width: 100%; display: flex; align-items: center; }
-
 #subtitle-container { width: 100%; display: none; line-height: 1.4; word-wrap: break-word; }
-
 #back-button { display: none !important; }
 
 #main-content { padding-top: 100px; transition: padding-top 0.2s ease; }
 .container { max-width: 28rem; margin: 0 auto; padding: 0 1.25rem 2.5rem; }
 
-.macro-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-.macro-card { 
-    height: 180px; border-radius: 1.25rem; background-size: cover; background-position: center; 
-    position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
-    background-color: #d1d5db; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+/* MODULO 5: MACRO GRID DINAMICA */
+.macro-container { 
+    display: grid; 
+    grid-template-columns: repeat(var(--macro-cols), 1fr); 
+    gap: 1rem; 
 }
-.macro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); }
-.macro-text-inside { color: white; font-weight: 800; text-transform: uppercase; z-index: 10; font-size: 1.2rem; }
+.macro-card { 
+    height: var(--macro-height); 
+    border-radius: 1.25rem; 
+    background-size: cover; 
+    background-position: center; 
+    position: relative; 
+    overflow: hidden; 
+    display: flex; 
+    align-items: var(--macro-align-v); 
+    justify-content: var(--macro-align-h);
+    padding: 20px;
+    background-color: #d1d5db; 
+    cursor: pointer; 
+    box-shadow: var(--macro-shadow);
+    transition: transform 0.2s;
+}
+.macro-card:active { transform: scale(0.98); }
+.macro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); z-index: 1; }
+.macro-text-inside { 
+    color: var(--macro-text-color); 
+    font-family: var(--macro-text-font);
+    font-weight: var(--macro-text-weight);
+    text-shadow: var(--macro-text-shadow);
+    text-align: var(--macro-align-h);
+    z-index: 10; 
+    font-size: 1.5rem; 
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 
 .menu-card { background: white; padding: 20px; border-radius: 24px; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 .item-card { display: flex; justify-content: space-between; gap: 1rem; }
