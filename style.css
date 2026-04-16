@@ -6,7 +6,13 @@
 }
 
 body {
-    background-color: #f9fafb;
+    /* Nuove variabili per il Modulo 4 (Sfondo) */
+    background-color: var(--app-bg-color, #f9fafb);
+    background-image: var(--app-bg-image, none);
+    background-size: var(--app-bg-size, cover);
+    background-position: var(--app-bg-position, center);
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* Mantiene lo sfondo fermo mentre si scorre il menu */
     min-height: 100vh;
     font-family: ui-sans-serif, system-ui, sans-serif;
     color: #111827;
@@ -33,10 +39,8 @@ body {
 
 #logo-container { width: 100%; display: flex; align-items: center; }
 
-/* SOTTOTITOLO SBLOCCATO: pronto per essere comandato dal JS */
 #subtitle-container { width: 100%; display: none; line-height: 1.4; word-wrap: break-word; }
 
-/* Tasto indietro ancora bloccato in attesa del Modulo 4 */
 #back-button { display: none !important; }
 
 #main-content { padding-top: 100px; transition: padding-top 0.2s ease; }
