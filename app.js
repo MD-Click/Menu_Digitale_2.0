@@ -1,4 +1,4 @@
-const VERSION = "11.0-SYNC-AND-DRINKS-VAULT";
+const VERSION = "11.1-VAULT-FILTER-FIX";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -134,17 +134,21 @@ function applyConfig() {
 
     const logoCont = document.getElementById('logo-container');
     const logoUrl = getVal('Logo_Image_URL', '');
-    logoCont.style.justifyContent = getVal('Logo_Align', 'center').toLowerCase() === 'left' ? 'flex-start' : (getVal('Logo_Align', 'center').toLowerCase() === 'right' ? 'flex-end' : 'center');
+    const align = getVal('Logo_Align', 'center').toLowerCase();
+    logoCont.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
+    logoCont.style.marginTop = getVal('Logo_Margin_Top', '0px');
+    logoCont.style.marginBottom = '0px'; 
     if (logoUrl) {
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no">`;
         document.getElementById('app-logo').onload = updateLayout;
     }
 
     const sub = document.getElementById('subtitle-container');
+    const subText = getVal('Subtitle_Text', '');
     root.style.setProperty('--subtitle-color', parseColor(getVal('Subtitle_Color', '#6b7280')));
     root.style.setProperty('--subtitle-font', getVal('Subtitle_Font', 'sans-serif'));
-    if (getVal('Subtitle_Text', '') !== '') {
-        sub.style.display = 'block'; sub.innerText = getVal('Subtitle_Text', '');
+    if (subText !== '') {
+        sub.style.display = 'block'; sub.innerText = subText;
         sub.style.color = 'var(--subtitle-color)'; sub.style.fontSize = getVal('Subtitle_Size', '14px');
         sub.style.fontFamily = 'var(--subtitle-font)'; sub.style.fontWeight = isTruthy(getVal('Subtitle_Bold', 'FALSE')) ? 'bold' : 'normal';
         sub.style.textAlign = getVal('Subtitle_Align', 'center').toLowerCase(); sub.style.marginTop = getVal('Subtitle_Margin_Top', '5px');
@@ -154,7 +158,6 @@ function applyConfig() {
     const shTitle = document.getElementById('sub-header-title');
     if (shTitle) { shTitle.style.fontSize = getVal('SubHeader_Size', '16px'); shTitle.style.fontWeight = isTruthy(getVal('SubHeader_Bold', 'TRUE')) ? 'bold' : 'normal'; }
 
-    // ITEM STYLES
     root.style.setProperty('--item-name-color', parseColor(getVal('Item_Name_Color', '#111827')));
     root.style.setProperty('--item-name-font', getVal('Item_Name_Font', 'sans-serif'));
     root.style.setProperty('--item-name-size', getVal('Item_Name_Size', '18px'));
@@ -193,7 +196,7 @@ function updateLayout() {
     }, 50);
 }
 
-// --- RENDERING MENU E PARSING DEL NO-ALCOL ---
+// --- RENDERING MENU ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -203,7 +206,6 @@ async function fetchMenu() {
         const rows = csv.split(/\r?\n/);
         for(let i=1; i<rows.length; i++){
             const c = safeParseCSVRow(rows[i]);
-            // Ripristino colonna noalc a index 9
             if(c.length >= 3 && c[0]) {
                 fullData.push({ 
                     macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
@@ -255,7 +257,6 @@ function toggleFilter(filterType) {
     renderLevel3(currentMacro, currentCat, true);
 }
 
-// LOGICA PIATTI, FILTRI CIBO vs BEVANDE
 function renderLevel3(m, c, isFiltering = false) {
     currentMacro = m; currentCat = c;
     if (!isFiltering) activeFilters = []; 
@@ -269,9 +270,7 @@ function renderLevel3(m, c, isFiltering = false) {
         document.getElementById('sub-header-title').innerText = c;
         let filtersHtml = '';
         
-        // Verifica se siamo in una macro bevanda
         const isDrinks = m.toLowerCase().match(/bevand|bebid|drink/);
-
         if (isDrinks) {
             const hasNoAlc = allCategoryItems.some(i => isTruthy(i.noalc));
             if(hasNoAlc) filtersHtml += `<button onclick="toggleFilter('noalc')" id="btn-noalc" class="filter-btn">Analcolico</button>`;
@@ -283,7 +282,6 @@ function renderLevel3(m, c, isFiltering = false) {
             if(hasVegan) filtersHtml += `<button onclick="toggleFilter('vegan')" id="btn-vegan" class="filter-btn">Vegano</button>`;
             if(hasVeg) filtersHtml += `<button onclick="toggleFilter('veg')" id="btn-veg" class="filter-btn">Vegetariano</button>`;
         }
-        
         document.getElementById('sub-header-filters').innerHTML = filtersHtml;
     }
 
