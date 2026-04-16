@@ -1,39 +1,15 @@
-const VERSION = "6.2-FULL-STABLE";
-console.log("Menu App Version: " + VERSION);
+const VERSION = "6.1-RESTORED";
+console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
 const SHEET_ID = urlParams.get('id'); 
 let appConfig = {};
 let fullData = [];
 let navigationStack = ['page-macro'];
-let activeFilters = []; 
-let currentMacroName = '';
-let currentCategoryName = '';
-
-// --- MODULO TRADUZIONE ---
-function setupAutoTranslate() {
-    const baseLang = 'it'; 
-    const userLang = (navigator.language || navigator.userLanguage).slice(0, 2).toLowerCase();
-    if (userLang !== baseLang) {
-        const style = document.createElement('style');
-        style.innerHTML = `.goog-te-banner-frame.skiptranslate { display: none !important; } body { top: 0px !important; } #goog-gt-tt { display: none !important; }`;
-        document.head.appendChild(style);
-        document.cookie = `googtrans=/${baseLang}/${userLang}; path=/`;
-        const widgetDiv = document.createElement('div');
-        widgetDiv.id = 'google_translate_element';
-        widgetDiv.style.display = 'none';
-        document.body.appendChild(widgetDiv);
-        window.googleTranslateElementInit = function() { new google.translate.TranslateElement({pageLanguage: baseLang, autoDisplay: false}, 'google_translate_element'); };
-        const script = document.createElement('script');
-        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-        document.body.appendChild(script);
-    }
-}
 
 // --- UTILITIES ---
 function cleanString(val) { return String(val || '').trim().replace(/^["']|["']$/g, '').replace(/,+$/, '').trim(); }
-function escapeHTML(str) { return String(str || '').replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[t] || t)); }
-function escapeJS(str) { return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
+function escapeHTML(str) { return String(str || '').replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":"&#39;",'"':'&quot;'}[t] || t)); }
 
 function safeParseCSVRow(str) {
     let arr = []; let quote = false; let cell = '';
@@ -53,8 +29,6 @@ function getVal(key, def) {
     return def;
 }
 
-function isTruthy(val) { return ['TRUE','SI','SÌ','YES','1','V','VERO'].includes(String(val || '').toUpperCase().trim()); }
-
 function parseColor(colorVal, opacityVal = 1) {
     let op = parseFloat(opacityVal); if(isNaN(op)) op = 1; 
     let c = String(colorVal).trim(); if (!c) return `rgba(255,255,255,${op})`;
@@ -72,7 +46,6 @@ function parseColor(colorVal, opacityVal = 1) {
 
 // --- CORE ---
 async function init() {
-    setupAutoTranslate();
     if (!SHEET_ID) return;
     await fetchConfig(); 
     applyConfig();       
@@ -86,28 +59,24 @@ async function fetchConfig() {
         let csv = await response.text();
         csv.replace(/^\ufeff/, '').split(/\r?\n/).forEach(row => {
             const cols = safeParseCSVRow(row);
-            if(cols.length >= 2 && cols[0].toLowerCase() !== 'property') appConfig[cols[0]] = cols[1];
+            if(cols.length >= 2) {
+                // Se la riga non è l'intestazione, caricala
+                if(cols[0].toLowerCase() !== 'property') appConfig[cols[0]] = cols[1];
+            }
         });
-        console.log("Config Caricato:", appConfig);
-    } catch(e) { console.error(e); }
+        console.log("Dati letti dal foglio:", appConfig);
+    } catch(e) { console.error("Errore Config:", e); }
 }
 
 function applyConfig() {
     const root = document.documentElement;
 
-    // Header
+    // Header & Colori
     root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), getVal('Header_Opacity', '0.95')));
-    let shadow = 'none'; const intensity = getVal('Header_Shadow_Intensity', 'medium').toLowerCase();
-    if(intensity === 'light') shadow = '0 2px 8px rgba(0,0,0,0.05)';
-    else if(intensity === 'medium') shadow = '0 4px 15px rgba(0,0,0,0.08)';
-    else if(intensity === 'strong') shadow = '0 8px 25px rgba(0,0,0,0.15)';
-    root.style.setProperty('--header-shadow', shadow);
-
-    // Back Button
-    const backBg = parseColor(getVal('Back_Btn_Bg', '#ffffff'));
-    const backColor = parseColor(getVal('Back_Btn_Color', '#000000'));
-    root.style.setProperty('--back-bg', backBg);
-    root.style.setProperty('--back-color', backColor);
+    
+    // Tasto Indietro
+    root.style.setProperty('--back-bg', parseColor(getVal('Back_Btn_Bg', '#111827')));
+    root.style.setProperty('--back-color', parseColor(getVal('Back_Btn_Color', '#ffffff')));
 
     // Logo
     const logoCont = document.getElementById('logo-container');
@@ -118,11 +87,7 @@ function applyConfig() {
     logoCont.style.marginBottom = getVal('Logo_Margin_Bottom', '0px');
     
     if (logoUrl) {
-        logoCont.innerHTML = `<img src="${logoUrl}" id="app-logo" style="max-height:${getVal('Logo_Height', '60px')}; object-fit:contain;" translate="no">`;
-        document.getElementById('app-logo').onload = updateLayout;
-    } else {
-        logoCont.innerHTML = '';
-        updateLayout();
+        logoCont.innerHTML = `<img src="${logoUrl}" id="app-logo" style="max-height:${getVal('Logo_Height', '60px')}; object-fit:contain;" onload="updateLayout()">`;
     }
 
     // Sottotitolo
@@ -133,49 +98,37 @@ function applyConfig() {
         sub.innerText = text;
         sub.style.color = parseColor(getVal('Subtitle_Color', '#6b7280'));
         sub.style.fontSize = getVal('Subtitle_Size', '14px');
-        sub.style.fontFamily = getVal('Subtitle_Font', 'sans-serif');
-        sub.style.fontWeight = isTruthy(getVal('Subtitle_Bold', 'FALSE')) ? 'bold' : 'normal';
         sub.style.textAlign = getVal('Subtitle_Align', 'center').toLowerCase();
         sub.style.marginBottom = getVal('Subtitle_Margin_Bottom', '10px');
-    } else {
-        sub.style.display = 'none';
     }
     updateLayout();
 }
 
 function updateLayout() {
-    setTimeout(() => {
-        const header = document.getElementById('main-header');
-        const main = document.getElementById('main-content');
-        const back = document.getElementById('back-button');
-        const subH = document.getElementById('sub-header');
+    const header = document.getElementById('main-header');
+    const main = document.getElementById('main-content');
+    const back = document.getElementById('back-button');
+    if (!header || !main) return;
 
-        if (!header || !main) return;
-        const hHeight = header.offsetHeight;
-        
-        main.style.paddingTop = `calc(${hHeight}px + 20px)`;
-        if (subH) subH.style.top = `${hHeight}px`;
+    const hHeight = header.offsetHeight;
+    main.style.paddingTop = (hHeight + 20) + "px";
 
-        const pos = getVal('Back_Btn_Position', 'top').toLowerCase();
-        if (pos === 'top') back.style.top = '25px';
-        else if (pos === 'center') back.style.top = `calc(${hHeight}px / 2 - 22px)`;
-        else if (pos === 'bottom') back.style.top = `calc(${hHeight}px - 55px)`;
-    }, 50);
+    const pos = getVal('Back_Btn_Position', 'top').toLowerCase();
+    if (pos === 'top') back.style.top = "25px";
+    else if (pos === 'center') back.style.top = (hHeight / 2 - 22) + "px";
 }
 
-// --- RENDERING ---
+// --- MENU RENDERING (Base 6.1) ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
         const res = await fetch(url);
         const csv = await res.text();
-        fullData = [];
         const rows = csv.split(/\r?\n/);
         for(let i=1; i<rows.length; i++){
             const c = safeParseCSVRow(rows[i]);
-            if(c.length >= 3 && c[0]) fullData.push({ macro: c[0], cat: c[1], name: c[2], desc: c[3], price: c[5], active: c[10]||'TRUE', photo: c[11] });
+            if(c.length >= 3 && c[0]) fullData.push({ macro: c[0], cat: c[1], name: c[2], desc: c[3], price: c[5], photo: c[11] });
         }
-        fullData = fullData.filter(i => isTruthy(i.active));
         document.getElementById('loading-screen').classList.add('hidden');
         renderLevel1();
     } catch(e) { console.error(e); }
@@ -186,17 +139,17 @@ function renderLevel1() {
     const macros = [...new Set(fullData.map(i => i.macro))];
     container.innerHTML = '';
     macros.forEach(m => {
-        container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card"><div class="macro-overlay"></div><span class="macro-text-inside">${escapeHTML(m)}</span></div>`;
+        container.innerHTML += `<div onclick="renderLevel2('${m}')" class="macro-card"><div class="macro-overlay"></div><span class="macro-text-inside">${m}</span></div>`;
     });
     showPage('page-macro');
 }
 
-function renderLevel2(mName) {
+function renderLevel2(m) {
     const container = document.getElementById('page-categories');
-    const cats = [...new Set(fullData.filter(i => i.macro === mName).map(i => i.cat))];
+    const cats = [...new Set(fullData.filter(i => i.macro === m).map(i => i.cat))];
     container.innerHTML = '';
     cats.forEach(c => {
-        container.innerHTML += `<div onclick="renderLevel3('${escapeJS(mName)}','${escapeJS(c)}')" class="menu-card"><span style="font-weight:bold;">${escapeHTML(c)}</span></div>`;
+        container.innerHTML += `<div onclick="renderLevel3('${m}','${c}')" class="menu-card"><strong>${c}</strong></div>`;
     });
     navigationStack.push('page-categories');
     showPage('page-categories');
@@ -207,7 +160,7 @@ function renderLevel3(m, c) {
     container.innerHTML = '';
     const items = fullData.filter(i => i.macro === m && i.cat === c);
     items.forEach(i => {
-        container.innerHTML += `<div class="menu-card item-card"><div><div class="item-name">${escapeHTML(i.name)}</div><div>${escapeHTML(i.desc)}</div><div class="item-price">${escapeHTML(i.price)}</div></div>${i.photo ? `<img src="${i.photo}" class="item-photo">` : ''}</div>`;
+        container.innerHTML += `<div class="menu-card item-card"><div><strong>${i.name}</strong><br><small>${i.desc}</small><br><span style="color:#4f46e5">${i.price}</span></div>${i.photo ? `<img src="${i.photo}" class="item-photo">` : ''}</div>`;
     });
     navigationStack.push('page-items');
     showPage('page-items');
