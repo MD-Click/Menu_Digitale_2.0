@@ -28,7 +28,6 @@ body {
     color: #111827;
 }
 
-/* HEADER COMPATTO */
 #main-header {
     background: var(--header-bg);
     box-shadow: var(--header-shadow);
@@ -52,13 +51,12 @@ body {
 #logo-container { width: 100%; display: flex; align-items: center; }
 #subtitle-container { width: 100%; display: none; line-height: 1.4; word-wrap: break-word; }
 
-/* TASTO INDIETRO BLINDATO */
+/* TASTO INDIETRO - Versione Micro (25% più piccolo, vicino al bordo) */
 #back-button {
-    position: fixed; /* Torna a fixed per essere ancorato allo schermo come l'header */
-    left: 15px;
-    /* Il TOP viene calcolato dinamicamente dal JS */
-    width: 44px;
-    height: 44px;
+    position: fixed;
+    left: 8px; /* Avvicinato al bordo sinistro */
+    width: 34px; /* Ridotto da 44px */
+    height: 34px; /* Ridotto da 44px */
     background: var(--back-bg);
     color: var(--back-color);
     display: none;
@@ -72,9 +70,7 @@ body {
     transition: opacity 0.2s;
 }
 #back-button.active { display: flex; }
-
-/* Rimpicciolisce il simbolo della freccia al suo interno */
-#back-button svg { width: 20px !important; height: 20px !important; }
+#back-button svg { width: 16px !important; height: 16px !important; } /* Icona rimpicciolita */
 
 #main-content { padding-top: 100px; transition: padding-top 0.2s ease; }
 .container { max-width: 28rem; margin: 0 auto; padding: 0 1.25rem 2.5rem; }
