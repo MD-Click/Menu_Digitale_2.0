@@ -37,7 +37,7 @@ body {
 
 #sub-header-title { color: var(--subtitle-color); font-family: var(--subtitle-font); text-align: center; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
 
-/* FILTRI (FIX SPAZIATURA UNIVERSALE) */
+/* FILTRI */
 .filters-container { display: flex; margin-top: var(--filter-margin); width: 100%; justify-content: center; flex-wrap: wrap; }
 .filter-btn { margin: 4px 6px; padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--subtitle-color); background: transparent; color: var(--subtitle-color); font-weight: bold; font-size: 12px; cursor: pointer; transition: all 0.2s; }
 .filter-btn.active { background: var(--subtitle-color); color: #fff; border-color: var(--subtitle-color); }
@@ -87,9 +87,17 @@ body {
 .item-desc { color: var(--item-desc-color); font-family: var(--item-desc-font); font-size: var(--item-desc-size); font-weight: var(--item-desc-weight); display: block; margin-bottom: 8px; line-height: 1.4; }
 .item-price { color: var(--item-price-color); font-family: var(--item-price-font); font-size: var(--item-price-size); font-weight: var(--item-price-weight); display: block; }
 
-.ar-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--ar-btn-bg); color: var(--ar-btn-color); padding: 8px 16px; border-radius: 20px; text-decoration: none; font-size: 14px; font-weight: bold; margin-top: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; }
-.ar-btn:active { transform: scale(0.95); box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
-.ar-btn svg { width: 18px; height: 18px; }
+/* AR BUTTON - Forma Badge e Centrato in Basso */
+.ar-btn { 
+    display: inline-flex; align-items: center; gap: 4px; 
+    background: var(--ar-btn-bg); color: var(--ar-btn-color); 
+    padding: 5px 12px; border-radius: 6px; /* Forma come la nota Senza Glutine */
+    text-decoration: none; font-size: 11px; /* Rimpicciolito */
+    font-weight: bold; text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; 
+}
+.ar-btn:active { transform: scale(0.95); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+.ar-btn svg { width: 14px; height: 14px; } /* Icona rimpicciolita */
 
 /* BADGES */
 .badge-container { display: flex; gap: 4px; margin-top: 10px; flex-wrap: wrap; }
