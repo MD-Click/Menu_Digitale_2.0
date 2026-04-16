@@ -1,4 +1,4 @@
-const VERSION = "10.0-ITEMS-AR-VAULT";
+const VERSION = "11.0-SYNC-AND-DRINKS-VAULT";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -97,7 +97,6 @@ async function fetchConfig() {
 function applyConfig() {
     const root = document.documentElement;
 
-    // ALTRI MODULI
     root.style.setProperty('--back-bg', parseColor(getVal('Back_Btn_Bg', '#111827')));
     root.style.setProperty('--back-color', parseColor(getVal('Back_Btn_Color', '#ffffff')));
     root.style.setProperty('--back-shadow', getVal('Back_Btn_Shadow_Intensity', 'none') !== 'none' ? '0 4px 6px rgba(0,0,0,0.1)' : 'none');
@@ -155,22 +154,19 @@ function applyConfig() {
     const shTitle = document.getElementById('sub-header-title');
     if (shTitle) { shTitle.style.fontSize = getVal('SubHeader_Size', '16px'); shTitle.style.fontWeight = isTruthy(getVal('SubHeader_Bold', 'TRUE')) ? 'bold' : 'normal'; }
 
-    // --- MODULO 10: CONTROLLI TESTO E BOTTONE AR ---
+    // ITEM STYLES
     root.style.setProperty('--item-name-color', parseColor(getVal('Item_Name_Color', '#111827')));
     root.style.setProperty('--item-name-font', getVal('Item_Name_Font', 'sans-serif'));
     root.style.setProperty('--item-name-size', getVal('Item_Name_Size', '18px'));
     root.style.setProperty('--item-name-weight', isTruthy(getVal('Item_Name_Bold', 'TRUE')) ? 'bold' : 'normal');
-
     root.style.setProperty('--item-desc-color', parseColor(getVal('Item_Desc_Color', '#6b7280')));
     root.style.setProperty('--item-desc-font', getVal('Item_Desc_Font', 'sans-serif'));
     root.style.setProperty('--item-desc-size', getVal('Item_Desc_Size', '14px'));
     root.style.setProperty('--item-desc-weight', isTruthy(getVal('Item_Desc_Bold', 'FALSE')) ? 'bold' : 'normal');
-
     root.style.setProperty('--item-price-color', parseColor(getVal('Item_Price_Color', '#4f46e5')));
     root.style.setProperty('--item-price-font', getVal('Item_Price_Font', 'sans-serif'));
     root.style.setProperty('--item-price-size', getVal('Item_Price_Size', '16px'));
     root.style.setProperty('--item-price-weight', isTruthy(getVal('Item_Price_Bold', 'TRUE')) ? 'bold' : 'normal');
-
     root.style.setProperty('--ar-btn-bg', parseColor(getVal('Item_AR_Btn_Bg', '#111827')));
     root.style.setProperty('--ar-btn-color', parseColor(getVal('Item_AR_Btn_Color', '#ffffff')));
 }
@@ -197,7 +193,7 @@ function updateLayout() {
     }, 50);
 }
 
-// --- RENDERING MENU (Modulo 10: Aggiunta lettura AR) ---
+// --- RENDERING MENU E PARSING DEL NO-ALCOL ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -207,11 +203,11 @@ async function fetchMenu() {
         const rows = csv.split(/\r?\n/);
         for(let i=1; i<rows.length; i++){
             const c = safeParseCSVRow(rows[i]);
-            // Recupero anche la colonna 12 (M) per il link AR
+            // Ripristino colonna noalc a index 9
             if(c.length >= 3 && c[0]) {
                 fullData.push({ 
                     macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
-                    gf: c[6], vegan: c[7], veg: c[8], active: c[10]||'TRUE', photo: c[11], ar: c[12] 
+                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], active: c[10]||'TRUE', photo: c[11], ar: c[12] 
                 });
             }
         }
@@ -224,8 +220,7 @@ async function fetchMenu() {
 function renderLevel1() {
     const container = document.getElementById('macro-layout-container');
     const macros = [...new Set(fullData.map(i => i.macro))];
-    container.className = 'macro-container';
-    container.innerHTML = '';
+    container.className = 'macro-container'; container.innerHTML = '';
     macros.forEach(m => {
         const searchKey = 'Macro_Img_' + m.replace(/\s+/g, '_');
         const imgUrl = getVal(searchKey, '');
@@ -260,7 +255,7 @@ function toggleFilter(filterType) {
     renderLevel3(currentMacro, currentCat, true);
 }
 
-// MODULO 10: RENDER PIATTI E BOTTONE AR
+// LOGICA PIATTI, FILTRI CIBO vs BEVANDE
 function renderLevel3(m, c, isFiltering = false) {
     currentMacro = m; currentCat = c;
     if (!isFiltering) activeFilters = []; 
@@ -273,14 +268,26 @@ function renderLevel3(m, c, isFiltering = false) {
     if (!isFiltering) {
         document.getElementById('sub-header-title').innerText = c;
         let filtersHtml = '';
-        const hasGf = allCategoryItems.some(i => isTruthy(i.gf)); const hasVegan = allCategoryItems.some(i => isTruthy(i.vegan)); const hasVeg = allCategoryItems.some(i => isTruthy(i.veg));
-        if(hasGf) filtersHtml += `<button onclick="toggleFilter('gf')" id="btn-gf" class="filter-btn">Senza Glutine</button>`;
-        if(hasVegan) filtersHtml += `<button onclick="toggleFilter('vegan')" id="btn-vegan" class="filter-btn">Vegano</button>`;
-        if(hasVeg) filtersHtml += `<button onclick="toggleFilter('veg')" id="btn-veg" class="filter-btn">Vegetariano</button>`;
+        
+        // Verifica se siamo in una macro bevanda
+        const isDrinks = m.toLowerCase().match(/bevand|bebid|drink/);
+
+        if (isDrinks) {
+            const hasNoAlc = allCategoryItems.some(i => isTruthy(i.noalc));
+            if(hasNoAlc) filtersHtml += `<button onclick="toggleFilter('noalc')" id="btn-noalc" class="filter-btn">Analcolico</button>`;
+        } else {
+            const hasGf = allCategoryItems.some(i => isTruthy(i.gf)); 
+            const hasVegan = allCategoryItems.some(i => isTruthy(i.vegan)); 
+            const hasVeg = allCategoryItems.some(i => isTruthy(i.veg));
+            if(hasGf) filtersHtml += `<button onclick="toggleFilter('gf')" id="btn-gf" class="filter-btn">Senza Glutine</button>`;
+            if(hasVegan) filtersHtml += `<button onclick="toggleFilter('vegan')" id="btn-vegan" class="filter-btn">Vegano</button>`;
+            if(hasVeg) filtersHtml += `<button onclick="toggleFilter('veg')" id="btn-veg" class="filter-btn">Vegetariano</button>`;
+        }
+        
         document.getElementById('sub-header-filters').innerHTML = filtersHtml;
     }
 
-    ['gf', 'vegan', 'veg'].forEach(f => {
+    ['gf', 'vegan', 'veg', 'noalc'].forEach(f => {
         const btn = document.getElementById(`btn-${f}`);
         if(btn) { activeFilters.includes(f) ? btn.classList.add('active') : btn.classList.remove('active'); }
     });
@@ -294,12 +301,11 @@ function renderLevel3(m, c, isFiltering = false) {
         if(isTruthy(i.gf)) badges += `<span class="badge badge-gf">Senza Glutine</span>`;
         if(isTruthy(i.vegan)) badges += `<span class="badge badge-vegan">Vegano</span>`;
         if(isTruthy(i.veg)) badges += `<span class="badge badge-veg">Vegetariano</span>`;
+        if(isTruthy(i.noalc)) badges += `<span class="badge badge-noalc">Analcolico</span>`;
         const badgeHtml = badges ? `<div class="badge-container">${badges}</div>` : '';
         
-        // Creazione Bottone AR Elegante con icona 3D
         const arHtml = i.ar ? `<a href="${escapeHTML(i.ar)}" target="_blank" class="ar-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Vedi Piatto</a>` : '';
 
-        // Struttura HTML unificata per le classi CSS dinamiche
         container.innerHTML += `
         <div class="menu-card item-card">
             <div style="flex-grow:1;">
