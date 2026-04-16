@@ -1,4 +1,4 @@
-const VERSION = "8.2-FILTRI-ESCLUSIVI-MARGIN";
+const VERSION = "9.0-CATEGORY-LEVEL-VAULT";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -6,7 +6,6 @@ const SHEET_ID = urlParams.get('id');
 let appConfig = {};
 let fullData = [];
 let navigationStack = ['page-macro'];
-
 let currentMacro = '';
 let currentCat = '';
 let activeFilters = [];
@@ -35,7 +34,6 @@ function setupAutoTranslate() {
 function cleanString(val) { return String(val || '').trim().replace(/^["']|["']$/g, '').replace(/,+$/, '').trim(); }
 function escapeHTML(str) { return String(str || '').replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":"&#39;",'"':'&quot;'}[t] || t)); }
 function escapeJS(str) { return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
-
 function safeParseCSVRow(str) {
     let arr = []; let quote = false; let cell = '';
     for (let i = 0; i < str.length; i++) {
@@ -47,15 +45,12 @@ function safeParseCSVRow(str) {
     }
     arr.push(cell); return arr.map(x => cleanString(x));
 }
-
 function getVal(key, def) {
     const searchKey = key.toLowerCase().trim();
     for (let k in appConfig) if (k.toLowerCase().trim() === searchKey) return appConfig[k] || def;
     return def;
 }
-
 function isTruthy(val) { return ['TRUE','SI','SÌ','YES','1','V','VERO'].includes(String(val || '').toUpperCase().trim()); }
-
 function parseColor(colorVal, opacityVal = 1) {
     let op = parseFloat(opacityVal); if(isNaN(op)) op = 1; 
     let c = String(colorVal).trim(); if (!c) return `rgba(255,255,255,${op})`;
@@ -74,14 +69,12 @@ function parseColor(colorVal, opacityVal = 1) {
 // --- INIT ---
 async function init() {
     setupAutoTranslate();
-    
     if (!document.getElementById('sub-header')) {
         const sh = document.createElement('div');
         sh.id = 'sub-header';
         sh.innerHTML = `<h2 id="sub-header-title"></h2><div id="sub-header-filters" class="filters-container"></div>`;
         document.body.appendChild(sh);
     }
-
     if (!SHEET_ID) return;
     await fetchConfig(); 
     applyConfig();       
@@ -104,24 +97,45 @@ async function fetchConfig() {
 function applyConfig() {
     const root = document.documentElement;
 
+    // BOTTONE INDIETRO
     root.style.setProperty('--back-bg', parseColor(getVal('Back_Btn_Bg', '#111827')));
     root.style.setProperty('--back-color', parseColor(getVal('Back_Btn_Color', '#ffffff')));
     root.style.setProperty('--back-shadow', getVal('Back_Btn_Shadow_Intensity', 'none') !== 'none' ? '0 4px 6px rgba(0,0,0,0.1)' : 'none');
 
-    const layout = getVal('Macro_Layout', 'grid').toLowerCase();
-    root.style.setProperty('--macro-cols', layout === 'list' ? '1' : '2');
+    // MACRO
+    const mLayout = getVal('Macro_Layout', 'grid').toLowerCase();
+    root.style.setProperty('--macro-cols', mLayout === 'list' ? '1' : '2');
     root.style.setProperty('--macro-height', getVal('Macro_Height', '180px'));
     root.style.setProperty('--macro-shadow', getVal('Macro_Shadow_Intensity', 'medium') !== 'none' ? '0 4px 6px rgba(0,0,0,0.1)' : 'none');
     root.style.setProperty('--macro-text-color', parseColor(getVal('Macro_Text_Color', '#ffffff')));
     root.style.setProperty('--macro-text-font', getVal('Macro_Text_Font', 'sans-serif'));
     root.style.setProperty('--macro-text-weight', isTruthy(getVal('Macro_Text_Bold', 'TRUE')) ? 'bold' : 'normal');
     root.style.setProperty('--macro-text-shadow', isTruthy(getVal('Macro_Text_Shadow', 'TRUE')) ? '0px 2px 6px rgba(0,0,0,0.8)' : 'none');
-    
-    const vPos = getVal('Macro_Text_VAlign', 'center').toLowerCase();
-    root.style.setProperty('--macro-align-v', vPos === 'top' ? 'flex-start' : (vPos === 'bottom' ? 'flex-end' : 'center'));
-    const hPos = getVal('Macro_Text_HAlign', 'center').toLowerCase();
-    root.style.setProperty('--macro-align-h', hPos === 'left' ? 'flex-start' : (hPos === 'right' ? 'flex-end' : 'center'));
+    const mvPos = getVal('Macro_Text_VAlign', 'center').toLowerCase();
+    root.style.setProperty('--macro-align-v', mvPos === 'top' ? 'flex-start' : (mvPos === 'bottom' ? 'flex-end' : 'center'));
+    const mhPos = getVal('Macro_Text_HAlign', 'center').toLowerCase();
+    root.style.setProperty('--macro-align-h', mhPos === 'left' ? 'flex-start' : (mhPos === 'right' ? 'flex-end' : 'center'));
 
+    // CATEGORIE (MODULO 9)
+    const cLayout = getVal('Cat_Layout', 'list').toLowerCase();
+    root.style.setProperty('--cat-cols', cLayout === 'grid' ? '2' : '1');
+    root.style.setProperty('--cat-bg', parseColor(getVal('Cat_Bg_Color', '#ffffff')));
+    root.style.setProperty('--cat-height', getVal('Cat_Height', '120px'));
+    let cShadow = '0 2px 4px rgba(0,0,0,0.05)';
+    const cInt = getVal('Cat_Shadow_Intensity', 'light').toLowerCase();
+    if(cInt === 'none') cShadow = 'none';
+    else if(cInt === 'medium') cShadow = '0 4px 6px rgba(0,0,0,0.1)';
+    else if(cInt === 'strong') cShadow = '0 10px 15px rgba(0,0,0,0.2)';
+    root.style.setProperty('--cat-shadow', cShadow);
+    root.style.setProperty('--cat-text-color', parseColor(getVal('Cat_Text_Color', '#1f2937')));
+    root.style.setProperty('--cat-text-font', getVal('Cat_Text_Font', 'sans-serif'));
+    root.style.setProperty('--cat-text-weight', isTruthy(getVal('Cat_Text_Bold', 'TRUE')) ? 'bold' : 'normal');
+    const cvPos = getVal('Cat_Text_VAlign', 'center').toLowerCase();
+    root.style.setProperty('--cat-align-v', cvPos === 'top' ? 'flex-start' : (cvPos === 'bottom' ? 'flex-end' : 'center'));
+    const chPos = getVal('Cat_Text_HAlign', 'left').toLowerCase();
+    root.style.setProperty('--cat-align-h', chPos === 'center' ? 'center' : (chPos === 'right' ? 'flex-end' : 'flex-start'));
+
+    // SFONDO
     const bgType = getVal('App_Bg_Type', 'color').toLowerCase();
     if (bgType === 'image' && getVal('App_Bg_Image_URL', '')) {
         root.style.setProperty('--app-bg-image', `url('${escapeHTML(getVal('App_Bg_Image_URL', ''))}')`);
@@ -132,42 +146,36 @@ function applyConfig() {
     }
     root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb')));
 
+    // HEADER
     const headerOpacity = isTruthy(getVal('Header_Transparent', 'FALSE')) ? '0.5' : '1';
     root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), headerOpacity));
     root.style.setProperty('--header-shadow', getVal('Header_Shadow_Intensity', 'medium') !== 'none' ? '0 4px 15px rgba(0,0,0,0.08)' : 'none');
 
+    // LOGO
     const logoCont = document.getElementById('logo-container');
     const logoUrl = getVal('Logo_Image_URL', '');
     const align = getVal('Logo_Align', 'center').toLowerCase();
     logoCont.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
     logoCont.style.marginTop = getVal('Logo_Margin_Top', '0px');
-    logoCont.style.marginBottom = '0px'; 
     if (logoUrl) {
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no">`;
         document.getElementById('app-logo').onload = updateLayout;
     }
 
+    // SOTTOTITOLO
     const sub = document.getElementById('subtitle-container');
     const subText = getVal('Subtitle_Text', '');
     root.style.setProperty('--subtitle-color', parseColor(getVal('Subtitle_Color', '#6b7280')));
     root.style.setProperty('--subtitle-font', getVal('Subtitle_Font', 'sans-serif'));
-
     if (subText !== '') {
-        sub.style.display = 'block';
-        sub.innerText = subText;
-        sub.style.color = 'var(--subtitle-color)';
-        sub.style.fontSize = getVal('Subtitle_Size', '14px');
-        sub.style.fontFamily = 'var(--subtitle-font)';
-        sub.style.fontWeight = isTruthy(getVal('Subtitle_Bold', 'FALSE')) ? 'bold' : 'normal';
-        sub.style.textAlign = getVal('Subtitle_Align', 'center').toLowerCase();
-        sub.style.marginTop = getVal('Subtitle_Margin_Top', '5px');
-    } else {
-        sub.style.display = 'none';
-    }
+        sub.style.display = 'block'; sub.innerText = subText;
+        sub.style.color = 'var(--subtitle-color)'; sub.style.fontSize = getVal('Subtitle_Size', '14px');
+        sub.style.fontFamily = 'var(--subtitle-font)'; sub.style.fontWeight = isTruthy(getVal('Subtitle_Bold', 'FALSE')) ? 'bold' : 'normal';
+        sub.style.textAlign = getVal('Subtitle_Align', 'center').toLowerCase(); sub.style.marginTop = getVal('Subtitle_Margin_Top', '5px');
+    } else { sub.style.display = 'none'; }
 
-    // Variabili Sub-Header e Margine Filtri
+    // SUB-HEADER FILTRI
     root.style.setProperty('--filter-margin', getVal('SubHeader_Filter_Margin', '12px'));
-    
     const subHeaderTitle = document.getElementById('sub-header-title');
     if (subHeaderTitle) {
         subHeaderTitle.style.fontSize = getVal('SubHeader_Size', '16px');
@@ -181,28 +189,24 @@ function updateLayout() {
         const subHeader = document.getElementById('sub-header');
         const main = document.getElementById('main-content');
         const backBtn = document.getElementById('back-button');
-        
         if (header) {
             const hHeight = header.offsetHeight;
             let totalHeight = hHeight;
-
             if (backBtn) {
                 const pos = getVal('Back_Btn_Position', 'center').toLowerCase();
                 if (pos === 'bottom') backBtn.style.top = (hHeight - 34 - 10) + "px"; 
                 else backBtn.style.top = (hHeight / 2 - 17) + "px"; 
             }
-
             if (subHeader && subHeader.style.display === 'flex') {
                 subHeader.style.top = hHeight + "px";
                 totalHeight += subHeader.offsetHeight;
             }
-
             if (main) main.style.paddingTop = `calc(${totalHeight}px + 20px)`;
         }
     }, 50);
 }
 
-// --- MENU RENDERING ---
+// --- RENDERING MENU ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -213,10 +217,7 @@ async function fetchMenu() {
         for(let i=1; i<rows.length; i++){
             const c = safeParseCSVRow(rows[i]);
             if(c.length >= 3 && c[0]) {
-                fullData.push({ 
-                    macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
-                    gf: c[6], vegan: c[7], veg: c[8], active: c[10]||'TRUE', photo: c[11] 
-                });
+                fullData.push({ macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], gf: c[6], vegan: c[7], veg: c[8], active: c[10]||'TRUE', photo: c[11] });
             }
         }
         fullData = fullData.filter(i => isTruthy(i.active));
@@ -230,40 +231,56 @@ function renderLevel1() {
     const macros = [...new Set(fullData.map(i => i.macro))];
     container.className = 'macro-container';
     container.innerHTML = '';
-    
     macros.forEach(m => {
         const searchKey = 'Macro_Img_' + m.replace(/\s+/g, '_');
         const imgUrl = getVal(searchKey, '');
         const bgStyle = imgUrl ? `background-image: url('${escapeHTML(imgUrl)}');` : '';
-
-        container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card" style="${bgStyle}">
-            <div class="macro-overlay"></div>
-            <span class="macro-text-inside">${escapeHTML(m)}</span>
-        </div>`;
+        container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside">${escapeHTML(m)}</span></div>`;
     });
     showPage('page-macro');
 }
 
+// MODULO 9: RENDER CATEGORIE DINAMICO
 function renderLevel2(m) {
     const container = document.getElementById('page-categories');
     const cats = [...new Set(fullData.filter(i => i.macro === m).map(i => i.cat))];
+    
+    container.className = 'cat-container';
     container.innerHTML = '';
+    
+    const layout = getVal('Cat_Layout', 'list').toLowerCase();
+
     cats.forEach(c => {
-        container.innerHTML += `<div onclick="renderLevel3('${escapeJS(m)}','${escapeJS(c)}') " class="menu-card" style="cursor:pointer;"><span style="font-weight:bold; font-size:1.1rem;">${escapeHTML(c)}</span></div>`;
+        const searchKey = 'Cat_Img_' + c.replace(/\s+/g, '_');
+        const imgUrl = getVal(searchKey, '');
+        
+        let innerHtml = '';
+        if (imgUrl) {
+            // Logica Testo/Immagine
+            if (layout === 'grid') {
+                innerHtml = `
+                    <div class="cat-img-wrapper"><img src="${escapeHTML(imgUrl)}" class="cat-img-grid" loading="lazy"></div>
+                    <div class="cat-text-wrapper"><span class="cat-text">${escapeHTML(c)}</span></div>
+                `;
+            } else {
+                innerHtml = `
+                    <div class="cat-text-wrapper"><span class="cat-text">${escapeHTML(c)}</span></div>
+                    <div class="cat-img-wrapper"><img src="${escapeHTML(imgUrl)}" class="cat-img-list" loading="lazy"></div>
+                `;
+            }
+        } else {
+            innerHtml = `<div class="cat-text-wrapper" style="width:100%;"><span class="cat-text">${escapeHTML(c)}</span></div>`;
+        }
+
+        container.innerHTML += `<div onclick="renderLevel3('${escapeJS(m)}','${escapeJS(c)}')" class="cat-card layout-${layout}">${innerHtml}</div>`;
     });
+    
     navigationStack.push('page-categories');
     showPage('page-categories');
 }
 
-// LOGICA FILTRI ESCLUSIVA (Radio Button Style)
 function toggleFilter(filterType) {
-    // Se il filtro cliccato è già attivo, lo spengo (torno a vedere tutti i piatti)
-    if (activeFilters.includes(filterType)) {
-        activeFilters = [];
-    } else {
-        // Altrimenti, svuoto l'array e inserisco SOLO il filtro cliccato
-        activeFilters = [filterType];
-    }
+    if (activeFilters.includes(filterType)) activeFilters = []; else activeFilters = [filterType];
     renderLevel3(currentMacro, currentCat, true);
 }
 
@@ -279,14 +296,10 @@ function renderLevel3(m, c, isFiltering = false) {
     if (!isFiltering) {
         document.getElementById('sub-header-title').innerText = c;
         let filtersHtml = '';
-        const hasGf = allCategoryItems.some(i => isTruthy(i.gf));
-        const hasVegan = allCategoryItems.some(i => isTruthy(i.vegan));
-        const hasVeg = allCategoryItems.some(i => isTruthy(i.veg));
-        
+        const hasGf = allCategoryItems.some(i => isTruthy(i.gf)); const hasVegan = allCategoryItems.some(i => isTruthy(i.vegan)); const hasVeg = allCategoryItems.some(i => isTruthy(i.veg));
         if(hasGf) filtersHtml += `<button onclick="toggleFilter('gf')" id="btn-gf" class="filter-btn">Senza Glutine</button>`;
         if(hasVegan) filtersHtml += `<button onclick="toggleFilter('vegan')" id="btn-vegan" class="filter-btn">Vegano</button>`;
         if(hasVeg) filtersHtml += `<button onclick="toggleFilter('veg')" id="btn-veg" class="filter-btn">Vegetariano</button>`;
-        
         document.getElementById('sub-header-filters').innerHTML = filtersHtml;
     }
 
@@ -296,13 +309,8 @@ function renderLevel3(m, c, isFiltering = false) {
     });
 
     let itemsToShow = allCategoryItems;
-    if (activeFilters.length > 0) {
-        itemsToShow = itemsToShow.filter(i => activeFilters.every(f => isTruthy(i[f])));
-    }
-
-    if (itemsToShow.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding: 20px; color:#9ca3af; font-weight:bold;">Nessun piatto corrisponde ai filtri selezionati.</div>`;
-    }
+    if (activeFilters.length > 0) itemsToShow = itemsToShow.filter(i => activeFilters.every(f => isTruthy(i[f])));
+    if (itemsToShow.length === 0) container.innerHTML = `<div style="text-align:center; padding: 20px; color:#9ca3af; font-weight:bold;">Nessun piatto trovato.</div>`;
 
     itemsToShow.forEach(i => {
         let badges = '';
@@ -310,22 +318,14 @@ function renderLevel3(m, c, isFiltering = false) {
         if(isTruthy(i.vegan)) badges += `<span class="badge badge-vegan">Vegano</span>`;
         if(isTruthy(i.veg)) badges += `<span class="badge badge-veg">Vegetariano</span>`;
         const badgeHtml = badges ? `<div class="badge-container">${badges}</div>` : '';
-
         container.innerHTML += `<div class="menu-card item-card"><div style="flex-grow:1;"><strong style="font-size:18px;">${escapeHTML(i.name)}</strong><br><span style="color:#6b7280; font-size:14px; display:block; margin-top:4px;">${escapeHTML(i.desc)}</span><span style="color:#4f46e5; font-weight:bold; font-size:16px; display:block; margin-top:6px;">${escapeHTML(i.price)}</span>${badgeHtml}</div>${i.photo ? `<img src="${escapeHTML(i.photo)}" class="item-photo" style="margin-left: 10px;">` : ''}</div>`;
     });
 
-    if(!isFiltering) {
-        navigationStack.push('page-items');
-        showPage('page-items');
-    }
+    if(!isFiltering) { navigationStack.push('page-items'); showPage('page-items'); }
 }
 
-// --- NAVIGAZIONE ---
 function showPage(p) {
-    ['page-macro','page-categories','page-items'].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.classList.add('hidden');
-    });
+    ['page-macro','page-categories','page-items'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('hidden'); });
     document.getElementById(p).classList.remove('hidden');
     
     const backBtn = document.getElementById('back-button');
@@ -334,29 +334,15 @@ function showPage(p) {
     const subHeader = document.getElementById('sub-header');
 
     if (backBtn) {
-        if (p === 'page-macro') {
-            backBtn.classList.remove('active');
-            if(wrapper) wrapper.style.paddingLeft = '0px'; 
-        } else {
-            backBtn.classList.add('active');
-            if(wrapper && align === 'left') wrapper.style.paddingLeft = '50px';
-        }
+        if (p === 'page-macro') { backBtn.classList.remove('active'); if(wrapper) wrapper.style.paddingLeft = '0px'; } 
+        else { backBtn.classList.add('active'); if(wrapper && align === 'left') wrapper.style.paddingLeft = '50px'; }
     }
 
     if (subHeader) {
         if (p === 'page-items') subHeader.style.display = 'flex';
         else subHeader.style.display = 'none';
     }
-
-    updateLayout();
-    window.scrollTo({top: 0, behavior: 'instant'});
+    updateLayout(); window.scrollTo({top: 0, behavior: 'instant'});
 }
-
-function goBack() { 
-    if(navigationStack.length > 1) { 
-        navigationStack.pop(); 
-        showPage(navigationStack[navigationStack.length-1]); 
-    } 
-}
-
+function goBack() { if(navigationStack.length > 1) { navigationStack.pop(); showPage(navigationStack[navigationStack.length-1]); } }
 init();
