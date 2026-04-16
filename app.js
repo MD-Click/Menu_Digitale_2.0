@@ -1,4 +1,4 @@
-const VERSION = "7.1-BACKBTN-FIX";
+const VERSION = "7.2-MICRO-NAV-FIX";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -188,6 +188,7 @@ function applyConfig() {
     }
 }
 
+// IL MOTORE MATEMATICO DEL BOTTONE INDIETRO
 function updateLayout() {
     setTimeout(() => {
         const header = document.getElementById('main-header');
@@ -198,9 +199,16 @@ function updateLayout() {
             const hHeight = header.offsetHeight;
             if (main) main.style.paddingTop = `calc(${hHeight}px + 20px)`;
             
-            // Centratura perfetta del bottone indietro (calcolando la metà dell'header meno la metà del bottone)
             if (backBtn) {
-                backBtn.style.top = (hHeight / 2 - 22) + "px";
+                const pos = getVal('Back_Btn_Position', 'center').toLowerCase();
+                // Il bottone ora è 34px. La metà è 17px.
+                if (pos === 'bottom') {
+                    // Se lo vuoi in basso, calcola l'altezza dell'header meno i 34px del bottone, meno 10px di margine
+                    backBtn.style.top = (hHeight - 34 - 10) + "px"; 
+                } else {
+                    // Di default è al centro perfetto
+                    backBtn.style.top = (hHeight / 2 - 17) + "px"; 
+                }
             }
         }
     }, 50);
@@ -283,6 +291,7 @@ function showPage(p) {
             if(wrapper) wrapper.style.paddingLeft = '0px'; 
         } else {
             backBtn.classList.add('active');
+            // La protezione a sinistra è rimasta di 50px per evitare che testi o loghi tocchino il bottone
             if(wrapper && align === 'left') {
                 wrapper.style.paddingLeft = '50px';
             }
