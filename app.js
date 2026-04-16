@@ -1,4 +1,4 @@
-const VERSION = "11.2-AR-BOTTOM-CENTER";
+const VERSION = "11.3-BADGES-FULL-WIDTH";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -158,7 +158,6 @@ function applyConfig() {
     const shTitle = document.getElementById('sub-header-title');
     if (shTitle) { shTitle.style.fontSize = getVal('SubHeader_Size', '16px'); shTitle.style.fontWeight = isTruthy(getVal('SubHeader_Bold', 'TRUE')) ? 'bold' : 'normal'; }
 
-    // ITEM STYLES
     root.style.setProperty('--item-name-color', parseColor(getVal('Item_Name_Color', '#111827')));
     root.style.setProperty('--item-name-font', getVal('Item_Name_Font', 'sans-serif'));
     root.style.setProperty('--item-name-size', getVal('Item_Name_Size', '18px'));
@@ -197,7 +196,6 @@ function updateLayout() {
     }, 50);
 }
 
-// --- RENDERING MENU ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -258,7 +256,7 @@ function toggleFilter(filterType) {
     renderLevel3(currentMacro, currentCat, true);
 }
 
-// LOGICA PIATTI CON BOTTONE AR SOTTO E AL CENTRO
+// LOGICA PIATTI (FIX BADGES FULL WIDTH)
 function renderLevel3(m, c, isFiltering = false) {
     currentMacro = m; currentCat = c;
     if (!isFiltering) activeFilters = []; 
@@ -302,10 +300,10 @@ function renderLevel3(m, c, isFiltering = false) {
         if(isTruthy(i.vegan)) badges += `<span class="badge badge-vegan">Vegano</span>`;
         if(isTruthy(i.veg)) badges += `<span class="badge badge-veg">Vegetariano</span>`;
         if(isTruthy(i.noalc)) badges += `<span class="badge badge-noalc">Analcolico</span>`;
+        
+        // I badge hanno ora il 100% della larghezza sotto la foto
         const badgeHtml = badges ? `<div class="badge-container">${badges}</div>` : '';
         
-        // Costruzione del bottone AR. 
-        // Viene wrappato in un div largo 100% con flexbox per centrarlo perfettamente sotto al piatto.
         const arHtml = i.ar ? `
             <div style="width: 100%; display: flex; justify-content: center; margin-top: 15px;">
                 <a href="${escapeHTML(i.ar)}" target="_blank" class="ar-btn">
@@ -317,7 +315,7 @@ function renderLevel3(m, c, isFiltering = false) {
                 </a>
             </div>` : '';
 
-        // Separazione della clip principale dalla zona AR inferiore
+        // STRUTTURA AGGIORNATA: I badge e l'AR sono fuori dall'impaginazione della foto!
         container.innerHTML += `
         <div class="menu-card">
             <div class="item-card">
@@ -325,10 +323,10 @@ function renderLevel3(m, c, isFiltering = false) {
                     <div class="item-name">${escapeHTML(i.name)}</div>
                     <div class="item-desc">${escapeHTML(i.desc)}</div>
                     <div class="item-price">${escapeHTML(i.price)}</div>
-                    ${badgeHtml}
                 </div>
                 ${i.photo ? `<img src="${escapeHTML(i.photo)}" class="item-photo" style="margin-left: 10px;" loading="lazy">` : ''}
             </div>
+            ${badgeHtml}
             ${arHtml}
         </div>`;
     });
