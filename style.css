@@ -15,6 +15,8 @@
     --back-bg: #111827;
     --back-color: #ffffff;
     --back-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    --subtitle-color: #6b7280;
+    --subtitle-font: sans-serif;
 }
 
 body {
@@ -29,45 +31,60 @@ body {
     color: #111827;
 }
 
+/* HEADER PRINCIPALE */
 #main-header {
     background: var(--header-bg);
     box-shadow: var(--header-shadow);
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 999;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 10px 20px; 
-    min-height: 100px; 
-    height: auto;      
+    position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 10px 20px; min-height: 100px; height: auto;      
     transition: background 0.3s ease;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
+
+/* MODULO 8: SUB-HEADER (Categoria e Filtri) */
+#sub-header {
+    position: fixed; left: 0; width: 100%; z-index: 998;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 10px 20px; background: var(--header-bg); box-shadow: var(--header-shadow);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    transition: top 0.2s ease, opacity 0.3s ease;
+}
+
+#sub-header-title {
+    color: var(--subtitle-color); font-family: var(--subtitle-font);
+    text-align: center; margin: 0; text-transform: uppercase; letter-spacing: 1px;
+}
+
+/* FILTRI E BADGES */
+.filters-container {
+    display: flex; gap: 8px; margin-top: 10px; width: 100%;
+    justify-content: center; flex-wrap: wrap;
+}
+.filter-btn {
+    padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--subtitle-color);
+    background: transparent; color: var(--subtitle-color); font-weight: bold;
+    font-size: 12px; cursor: pointer; transition: all 0.2s;
+}
+.filter-btn.active {
+    background: var(--subtitle-color); color: #fff;
+}
+.badge-container { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+.badge { padding: 3px 6px; border-radius: 6px; font-size: 10px; color: white; font-weight: bold; text-transform: uppercase; }
+.badge-gf { background: #eab308; } /* Giallo Oro per Senza Glutine */
+.badge-vegan { background: #22c55e; } /* Verde acceso per Vegano */
+.badge-veg { background: #84cc16; } /* Verde chiaro per Vegetariano */
 
 #header-content-wrapper { width: 100%; transition: padding-left 0.3s ease; }
 #logo-container { width: 100%; display: flex; align-items: center; }
 #subtitle-container { width: 100%; display: none; line-height: 1.4; word-wrap: break-word; }
 
 #back-button {
-    position: fixed;
-    left: 8px; 
-    width: 34px; 
-    height: 34px; 
-    background: var(--back-bg);
-    color: var(--back-color);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: none;
-    box-shadow: var(--back-shadow); /* Ombra dinamica */
-    cursor: pointer;
-    z-index: 1000;
-    transition: opacity 0.2s;
+    position: fixed; left: 8px; width: 34px; height: 34px; 
+    background: var(--back-bg); color: var(--back-color);
+    display: none; align-items: center; justify-content: center;
+    border-radius: 50%; border: none; box-shadow: var(--back-shadow);
+    cursor: pointer; z-index: 1000; transition: opacity 0.2s;
 }
 #back-button.active { display: flex; }
 #back-button svg { width: 16px !important; height: 16px !important; } 
