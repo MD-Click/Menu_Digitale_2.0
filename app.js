@@ -1,4 +1,4 @@
-const VERSION = "5.0-MODULO-MACRO";
+const VERSION = "6.0-HEADER-COMPATTO";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -27,7 +27,7 @@ function setupAutoTranslate() {
     }
 }
 
-// --- UTILITIES BLINDATE ---
+// --- UTILITIES ---
 function cleanString(val) { return String(val || '').trim().replace(/^["']|["']$/g, '').replace(/,+$/, '').trim(); }
 function escapeHTML(str) { return String(str || '').replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":"&#39;",'"':'&quot;'}[t] || t)); }
 function escapeJS(str) { return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
@@ -67,7 +67,7 @@ function parseColor(colorVal, opacityVal = 1) {
     return c; 
 }
 
-// --- CORE ---
+// --- INIT ---
 async function init() {
     setupAutoTranslate();
     if (!SHEET_ID) return;
@@ -86,10 +86,9 @@ async function fetchConfig() {
             const cols = safeParseCSVRow(row);
             if(cols.length >= 2 && cols[0].toLowerCase() !== 'property') appConfig[cols[0]] = cols[1];
         });
-        
         const keys = Object.keys(appConfig);
         if (keys.length > 0 && keys[0].includes("Logo_Image_URL") && keys[0].length > 30) {
-            document.body.innerHTML = `<div style="padding:40px; text-align:center;"><h2 style="color:red;">🚨 Errore Google Sheets! 🚨</h2><p>Dati schiacciati in una sola cella. Usa 'Dividi testo in colonne'.</p></div>`;
+            document.body.innerHTML = `<div style="padding:40px; text-align:center;"><h2 style="color:red;">🚨 Errore Google Sheets! 🚨</h2><p>Dati schiacciati in una sola cella.</p></div>`;
             throw new Error("Dati CSV compressi");
         }
     } catch(e) { console.error(e); }
@@ -98,31 +97,26 @@ async function fetchConfig() {
 function applyConfig() {
     const root = document.documentElement;
 
-    // --- MODULO 5: MACRO SETTINGS ---
+    // --- MACRO ---
     const layout = getVal('Macro_Layout', 'grid').toLowerCase();
     root.style.setProperty('--macro-cols', layout === 'list' ? '1' : '2');
     root.style.setProperty('--macro-height', getVal('Macro_Height', '180px'));
-
     let mShadow = '0 4px 6px rgba(0,0,0,0.1)';
     const mInt = getVal('Macro_Shadow_Intensity', 'medium').toLowerCase();
     if(mInt === 'none') mShadow = 'none';
     else if(mInt === 'light') mShadow = '0 2px 4px rgba(0,0,0,0.05)';
     else if(mInt === 'strong') mShadow = '0 10px 15px rgba(0,0,0,0.2)';
     root.style.setProperty('--macro-shadow', mShadow);
-
     root.style.setProperty('--macro-text-color', parseColor(getVal('Macro_Text_Color', '#ffffff')));
     root.style.setProperty('--macro-text-font', getVal('Macro_Text_Font', 'sans-serif'));
     root.style.setProperty('--macro-text-weight', isTruthy(getVal('Macro_Text_Bold', 'TRUE')) ? 'bold' : 'normal');
-    
     root.style.setProperty('--macro-text-shadow', isTruthy(getVal('Macro_Text_Shadow', 'TRUE')) ? '0px 2px 6px rgba(0,0,0,0.8)' : 'none');
-
     const vPos = getVal('Macro_Text_VAlign', 'center').toLowerCase();
     root.style.setProperty('--macro-align-v', vPos === 'top' ? 'flex-start' : (vPos === 'bottom' ? 'flex-end' : 'center'));
-
     const hPos = getVal('Macro_Text_HAlign', 'center').toLowerCase();
     root.style.setProperty('--macro-align-h', hPos === 'left' ? 'flex-start' : (hPos === 'right' ? 'flex-end' : 'center'));
 
-    // --- MODULO 4: SFONDO (BACKGROUND) ---
+    // --- SFONDO ---
     const bgType = getVal('App_Bg_Type', 'color').toLowerCase();
     if (bgType === 'image') {
         const bgUrl = getVal('App_Bg_Image_URL', '');
@@ -140,7 +134,7 @@ function applyConfig() {
         root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb')));
     }
 
-    // --- MODULO 2: HEADER E COLORI ---
+    // --- HEADER E COLORI ---
     const isTransparent = isTruthy(getVal('Header_Transparent', 'FALSE'));
     const headerOpacity = isTransparent ? '0.5' : '1';
     root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), headerOpacity));
@@ -151,13 +145,14 @@ function applyConfig() {
     else if(intensity === 'strong') shadow = '0 8px 25px rgba(0,0,0,0.15)';
     root.style.setProperty('--header-shadow', shadow);
 
-    // --- MODULO 1: LOGO ---
+    // --- LOGO (COMPATTO) ---
     const logoCont = document.getElementById('logo-container');
     const logoUrl = getVal('Logo_Image_URL', '');
     const align = getVal('Logo_Align', 'center').toLowerCase();
     logoCont.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
-    logoCont.style.marginTop = getVal('Logo_Margin_Top', '10px');
-    logoCont.style.marginBottom = getVal('Logo_Margin_Bottom', '10px');
+    logoCont.style.marginTop = getVal('Logo_Margin_Top', '0px');
+    logoCont.style.marginBottom = '0px'; // AZZERATO
+    
     if (logoUrl) {
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no">`;
         document.getElementById('app-logo').onload = updateLayout;
@@ -166,7 +161,7 @@ function applyConfig() {
         updateLayout();
     }
 
-    // --- MODULO 3: SOTTOTITOLO ---
+    // --- SOTTOTITOLO (COMPATTO) ---
     const sub = document.getElementById('subtitle-container');
     const subText = getVal('Subtitle_Text', '');
     if (subText !== '') {
@@ -177,7 +172,10 @@ function applyConfig() {
         sub.style.fontFamily = getVal('Subtitle_Font', 'sans-serif');
         sub.style.fontWeight = isTruthy(getVal('Subtitle_Bold', 'FALSE')) ? 'bold' : 'normal';
         sub.style.textAlign = getVal('Subtitle_Align', 'center').toLowerCase();
-        sub.style.marginBottom = getVal('Subtitle_Margin_Bottom', '10px');
+        
+        // IL MARGINE ORA E' SOPRA (Tra il testo e il logo)
+        sub.style.marginTop = getVal('Subtitle_Margin_Top', '5px');
+        sub.style.marginBottom = '0px'; // AZZERATO
     } else {
         sub.style.display = 'none';
     }
@@ -216,7 +214,6 @@ function renderLevel1() {
     container.innerHTML = '';
     
     macros.forEach(m => {
-        // Cerca l'immagine specifica per la macro (sostituisce gli spazi con underscore)
         const searchKey = 'Macro_Img_' + m.replace(/\s+/g, '_');
         const imgUrl = getVal(searchKey, '');
         const bgStyle = imgUrl ? `background-image: url('${escapeHTML(imgUrl)}');` : '';
