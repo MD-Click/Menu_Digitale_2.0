@@ -1,4 +1,4 @@
-const VERSION = "11.1-VAULT-FILTER-FIX";
+const VERSION = "11.2-AR-BOTTOM-CENTER";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -158,6 +158,7 @@ function applyConfig() {
     const shTitle = document.getElementById('sub-header-title');
     if (shTitle) { shTitle.style.fontSize = getVal('SubHeader_Size', '16px'); shTitle.style.fontWeight = isTruthy(getVal('SubHeader_Bold', 'TRUE')) ? 'bold' : 'normal'; }
 
+    // ITEM STYLES
     root.style.setProperty('--item-name-color', parseColor(getVal('Item_Name_Color', '#111827')));
     root.style.setProperty('--item-name-font', getVal('Item_Name_Font', 'sans-serif'));
     root.style.setProperty('--item-name-size', getVal('Item_Name_Size', '18px'));
@@ -257,6 +258,7 @@ function toggleFilter(filterType) {
     renderLevel3(currentMacro, currentCat, true);
 }
 
+// LOGICA PIATTI CON BOTTONE AR SOTTO E AL CENTRO
 function renderLevel3(m, c, isFiltering = false) {
     currentMacro = m; currentCat = c;
     if (!isFiltering) activeFilters = []; 
@@ -302,18 +304,32 @@ function renderLevel3(m, c, isFiltering = false) {
         if(isTruthy(i.noalc)) badges += `<span class="badge badge-noalc">Analcolico</span>`;
         const badgeHtml = badges ? `<div class="badge-container">${badges}</div>` : '';
         
-        const arHtml = i.ar ? `<a href="${escapeHTML(i.ar)}" target="_blank" class="ar-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Vedi Piatto</a>` : '';
+        // Costruzione del bottone AR. 
+        // Viene wrappato in un div largo 100% con flexbox per centrarlo perfettamente sotto al piatto.
+        const arHtml = i.ar ? `
+            <div style="width: 100%; display: flex; justify-content: center; margin-top: 15px;">
+                <a href="${escapeHTML(i.ar)}" target="_blank" class="ar-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg> Vedi Piatto
+                </a>
+            </div>` : '';
 
+        // Separazione della clip principale dalla zona AR inferiore
         container.innerHTML += `
-        <div class="menu-card item-card">
-            <div style="flex-grow:1;">
-                <div class="item-name">${escapeHTML(i.name)}</div>
-                <div class="item-desc">${escapeHTML(i.desc)}</div>
-                <div class="item-price">${escapeHTML(i.price)}</div>
-                ${badgeHtml}
-                ${arHtml}
+        <div class="menu-card">
+            <div class="item-card">
+                <div style="flex-grow:1;">
+                    <div class="item-name">${escapeHTML(i.name)}</div>
+                    <div class="item-desc">${escapeHTML(i.desc)}</div>
+                    <div class="item-price">${escapeHTML(i.price)}</div>
+                    ${badgeHtml}
+                </div>
+                ${i.photo ? `<img src="${escapeHTML(i.photo)}" class="item-photo" style="margin-left: 10px;" loading="lazy">` : ''}
             </div>
-            ${i.photo ? `<img src="${escapeHTML(i.photo)}" class="item-photo" style="margin-left: 10px;" loading="lazy">` : ''}
+            ${arHtml}
         </div>`;
     });
 
