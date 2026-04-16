@@ -1,4 +1,4 @@
-const VERSION = "2.1-HEADER-TRASPARENZA";
+const VERSION = "3.0-MODULO-SOTTOTITOLO";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -87,7 +87,6 @@ async function fetchConfig() {
             if(cols.length >= 2 && cols[0].toLowerCase() !== 'property') appConfig[cols[0]] = cols[1];
         });
         
-        // Allarme Salva-Vita Google Sheets
         const keys = Object.keys(appConfig);
         if (keys.length > 0 && keys[0].includes("Logo_Image_URL") && keys[0].length > 30) {
             document.body.innerHTML = `<div style="padding:40px; text-align:center;"><h2 style="color:red;">🚨 Errore Google Sheets! 🚨</h2><p>Dati schiacciati in una sola cella. Usa 'Dividi testo in colonne'.</p></div>`;
@@ -100,11 +99,9 @@ async function fetchConfig() {
 function applyConfig() {
     const root = document.documentElement;
 
-    // --- MODULO 2: HEADER E COLORI (Fix Trasparenza) ---
-    // Se Header_Transparent è VERO, opacità 0.5. Altrimenti 1.
+    // --- MODULO 2: HEADER E COLORI ---
     const isTransparent = isTruthy(getVal('Header_Transparent', 'FALSE'));
     const headerOpacity = isTransparent ? '0.5' : '1';
-    
     root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), headerOpacity));
     
     let shadow = 'none'; 
@@ -113,10 +110,6 @@ function applyConfig() {
     else if(intensity === 'medium') shadow = '0 4px 15px rgba(0,0,0,0.08)';
     else if(intensity === 'strong') shadow = '0 8px 25px rgba(0,0,0,0.15)';
     root.style.setProperty('--header-shadow', shadow);
-
-    // Tasto Indietro (Nascosto ma cablato in sicurezza)
-    root.style.setProperty('--back-bg', parseColor(getVal('Back_Btn_Bg', '#111827')));
-    root.style.setProperty('--back-color', parseColor(getVal('Back_Btn_Color', '#ffffff')));
 
     // --- MODULO 1: LOGO ---
     const logoCont = document.getElementById('logo-container');
@@ -133,6 +126,23 @@ function applyConfig() {
     } else {
         logoCont.innerHTML = '';
         updateLayout();
+    }
+
+    // --- MODULO 3: SOTTOTITOLO ---
+    const sub = document.getElementById('subtitle-container');
+    const subText = getVal('Subtitle_Text', '');
+    
+    if (subText !== '') {
+        sub.style.display = 'block';
+        sub.innerText = subText;
+        sub.style.color = parseColor(getVal('Subtitle_Color', '#6b7280'));
+        sub.style.fontSize = getVal('Subtitle_Size', '14px');
+        sub.style.fontFamily = getVal('Subtitle_Font', 'sans-serif');
+        sub.style.fontWeight = isTruthy(getVal('Subtitle_Bold', 'FALSE')) ? 'bold' : 'normal';
+        sub.style.textAlign = getVal('Subtitle_Align', 'center').toLowerCase();
+        sub.style.marginBottom = getVal('Subtitle_Margin_Bottom', '10px');
+    } else {
+        sub.style.display = 'none';
     }
 }
 
