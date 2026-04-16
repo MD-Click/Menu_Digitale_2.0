@@ -1,5 +1,10 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
+:root {
+    --header-bg: rgba(255, 255, 255, 0.95);
+    --header-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
 body {
     background-color: #f9fafb;
     min-height: 100vh;
@@ -7,10 +12,10 @@ body {
     color: #111827;
 }
 
-/* HEADER BASE - Si adatta dinamicamente all'altezza del logo */
+/* MODULO 2: HEADER (100px minimi + adattamento) */
 #main-header {
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    background: var(--header-bg);
+    box-shadow: var(--header-shadow);
     position: fixed;
     top: 0;
     left: 0;
@@ -20,11 +25,16 @@ body {
     flex-direction: column;
     justify-content: center;
     padding: 10px 20px;
+    min-height: 100px; /* La tua richiesta: minimo 100px */
+    height: auto;      /* Si adatta se il logo o i margini lo spingono oltre */
+    transition: background 0.3s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 #logo-container { width: 100%; display: flex; align-items: center; }
 
-/* NASCONDIAMO SOTTOTITOLO E TASTO INDIETRO PER ORA */
+/* Elementi futuri disattivati per ora */
 #subtitle-container, #back-button { display: none !important; }
 
 /* CONTENUTO */
