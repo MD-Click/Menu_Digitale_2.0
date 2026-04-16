@@ -1,4 +1,4 @@
-const VERSION = "6.1-RESTORED";
+const VERSION = "7.0-STABILE-BLINDATA";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -7,9 +7,30 @@ let appConfig = {};
 let fullData = [];
 let navigationStack = ['page-macro'];
 
+// --- TRADUZIONE ---
+function setupAutoTranslate() {
+    const baseLang = 'it'; 
+    const userLang = (navigator.language || navigator.userLanguage).slice(0, 2).toLowerCase();
+    if (userLang !== baseLang) {
+        const style = document.createElement('style');
+        style.innerHTML = `.goog-te-banner-frame.skiptranslate { display: none !important; } body { top: 0px !important; } #goog-gt-tt { display: none !important; }`;
+        document.head.appendChild(style);
+        document.cookie = `googtrans=/${baseLang}/${userLang}; path=/`;
+        const widgetDiv = document.createElement('div');
+        widgetDiv.id = 'google_translate_element';
+        widgetDiv.style.display = 'none';
+        document.body.appendChild(widgetDiv);
+        window.googleTranslateElementInit = function() { new google.translate.TranslateElement({pageLanguage: baseLang, autoDisplay: false}, 'google_translate_element'); };
+        const script = document.createElement('script');
+        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        document.body.appendChild(script);
+    }
+}
+
 // --- UTILITIES ---
 function cleanString(val) { return String(val || '').trim().replace(/^["']|["']$/g, '').replace(/,+$/, '').trim(); }
 function escapeHTML(str) { return String(str || '').replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":"&#39;",'"':'&quot;'}[t] || t)); }
+function escapeJS(str) { return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
 
 function safeParseCSVRow(str) {
     let arr = []; let quote = false; let cell = '';
@@ -29,6 +50,8 @@ function getVal(key, def) {
     return def;
 }
 
+function isTruthy(val) { return ['TRUE','SI','SÌ','YES','1','V','VERO'].includes(String(val || '').toUpperCase().trim()); }
+
 function parseColor(colorVal, opacityVal = 1) {
     let op = parseFloat(opacityVal); if(isNaN(op)) op = 1; 
     let c = String(colorVal).trim(); if (!c) return `rgba(255,255,255,${op})`;
@@ -46,6 +69,7 @@ function parseColor(colorVal, opacityVal = 1) {
 
 // --- CORE ---
 async function init() {
+    setupAutoTranslate();
     if (!SHEET_ID) return;
     await fetchConfig(); 
     applyConfig();       
@@ -59,20 +83,30 @@ async function fetchConfig() {
         let csv = await response.text();
         csv.replace(/^\ufeff/, '').split(/\r?\n/).forEach(row => {
             const cols = safeParseCSVRow(row);
-            if(cols.length >= 2) {
-                // Se la riga non è l'intestazione, caricala
-                if(cols[0].toLowerCase() !== 'property') appConfig[cols[0]] = cols[1];
-            }
+            if(cols.length >= 2 && cols[0].toLowerCase() !== 'property') appConfig[cols[0]] = cols[1];
         });
-        console.log("Dati letti dal foglio:", appConfig);
-    } catch(e) { console.error("Errore Config:", e); }
+        
+        // --- ALLARME SALVA-VITA PER GOOGLE SHEETS ---
+        const keys = Object.keys(appConfig);
+        if (keys.length > 0 && keys[0].includes("Logo_Image_URL") && keys[0].length > 30) {
+            document.body.innerHTML = `
+            <div style="padding: 40px; text-align: center; font-family: sans-serif;">
+                <h2 style="color: #ef4444;">🚨 Errore Google Sheets! 🚨</h2>
+                <p>Hai incollato tutti i dati in un'unica cella.</p>
+                <p>Vai nel tuo foglio Google, seleziona la Colonna A, e clicca su <b>Dati > Dividi testo in colonne</b>.</p>
+            </div>`;
+            throw new Error("Dati schiacciati in una sola cella");
+        }
+
+        console.log("Config Caricato:", appConfig);
+    } catch(e) { console.error(e); }
 }
 
 function applyConfig() {
     const root = document.documentElement;
 
-    // Header & Colori
-    root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), getVal('Header_Opacity', '0.95')));
+    // Header Colori
+    root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), getVal('Header_Opacity', '1')));
     
     // Tasto Indietro
     root.style.setProperty('--back-bg', parseColor(getVal('Back_Btn_Bg', '#111827')));
@@ -82,53 +116,52 @@ function applyConfig() {
     const logoCont = document.getElementById('logo-container');
     const logoUrl = getVal('Logo_Image_URL', '');
     const align = getVal('Logo_Align', 'center').toLowerCase();
+    
     logoCont.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
-    logoCont.style.marginTop = getVal('Logo_Margin_Top', '0px');
-    logoCont.style.marginBottom = getVal('Logo_Margin_Bottom', '0px');
+    logoCont.style.marginTop = getVal('Logo_Margin_Top', '10px');
+    logoCont.style.marginBottom = getVal('Logo_Margin_Bottom', '10px');
     
     if (logoUrl) {
-        logoCont.innerHTML = `<img src="${logoUrl}" id="app-logo" style="max-height:${getVal('Logo_Height', '60px')}; object-fit:contain;" onload="updateLayout()">`;
+        logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no">`;
+        document.getElementById('app-logo').onload = updateLayout;
+    } else {
+        logoCont.innerHTML = '';
+        updateLayout();
     }
 
-    // Sottotitolo
+    // Nascondiamo il sottotitolo per tornare alla versione stabile e pulita
     const sub = document.getElementById('subtitle-container');
-    const text = getVal('Subtitle_Text', '');
-    if (text) {
-        sub.style.display = 'block';
-        sub.innerText = text;
-        sub.style.color = parseColor(getVal('Subtitle_Color', '#6b7280'));
-        sub.style.fontSize = getVal('Subtitle_Size', '14px');
-        sub.style.textAlign = getVal('Subtitle_Align', 'center').toLowerCase();
-        sub.style.marginBottom = getVal('Subtitle_Margin_Bottom', '10px');
-    }
-    updateLayout();
+    if (sub) sub.style.display = 'none';
 }
 
 function updateLayout() {
-    const header = document.getElementById('main-header');
-    const main = document.getElementById('main-content');
-    const back = document.getElementById('back-button');
-    if (!header || !main) return;
+    setTimeout(() => {
+        const header = document.getElementById('main-header');
+        const main = document.getElementById('main-content');
+        const back = document.getElementById('back-button');
 
-    const hHeight = header.offsetHeight;
-    main.style.paddingTop = (hHeight + 20) + "px";
-
-    const pos = getVal('Back_Btn_Position', 'top').toLowerCase();
-    if (pos === 'top') back.style.top = "25px";
-    else if (pos === 'center') back.style.top = (hHeight / 2 - 22) + "px";
+        if (!header || !main) return;
+        const hHeight = header.offsetHeight;
+        main.style.paddingTop = `calc(${hHeight}px + 20px)`;
+        
+        // Tasto indietro fisso in alto a sinistra
+        if (back) back.style.top = "25px";
+    }, 50);
 }
 
-// --- MENU RENDERING (Base 6.1) ---
+// --- RENDERING MENU ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
         const res = await fetch(url);
         const csv = await res.text();
+        fullData = [];
         const rows = csv.split(/\r?\n/);
         for(let i=1; i<rows.length; i++){
             const c = safeParseCSVRow(rows[i]);
-            if(c.length >= 3 && c[0]) fullData.push({ macro: c[0], cat: c[1], name: c[2], desc: c[3], price: c[5], photo: c[11] });
+            if(c.length >= 3 && c[0]) fullData.push({ macro: c[0], cat: c[1], name: c[2], desc: c[3], price: c[5], active: c[10]||'TRUE', photo: c[11] });
         }
+        fullData = fullData.filter(i => isTruthy(i.active));
         document.getElementById('loading-screen').classList.add('hidden');
         renderLevel1();
     } catch(e) { console.error(e); }
@@ -139,7 +172,7 @@ function renderLevel1() {
     const macros = [...new Set(fullData.map(i => i.macro))];
     container.innerHTML = '';
     macros.forEach(m => {
-        container.innerHTML += `<div onclick="renderLevel2('${m}')" class="macro-card"><div class="macro-overlay"></div><span class="macro-text-inside">${m}</span></div>`;
+        container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card"><div class="macro-overlay"></div><span class="macro-text-inside">${escapeHTML(m)}</span></div>`;
     });
     showPage('page-macro');
 }
@@ -149,7 +182,7 @@ function renderLevel2(m) {
     const cats = [...new Set(fullData.filter(i => i.macro === m).map(i => i.cat))];
     container.innerHTML = '';
     cats.forEach(c => {
-        container.innerHTML += `<div onclick="renderLevel3('${m}','${c}')" class="menu-card"><strong>${c}</strong></div>`;
+        container.innerHTML += `<div onclick="renderLevel3('${escapeJS(m)}','${escapeJS(c)}')" class="menu-card" style="cursor:pointer;"><span style="font-weight:bold; font-size:1.1rem;">${escapeHTML(c)}</span></div>`;
     });
     navigationStack.push('page-categories');
     showPage('page-categories');
@@ -160,7 +193,7 @@ function renderLevel3(m, c) {
     container.innerHTML = '';
     const items = fullData.filter(i => i.macro === m && i.cat === c);
     items.forEach(i => {
-        container.innerHTML += `<div class="menu-card item-card"><div><strong>${i.name}</strong><br><small>${i.desc}</small><br><span style="color:#4f46e5">${i.price}</span></div>${i.photo ? `<img src="${i.photo}" class="item-photo">` : ''}</div>`;
+        container.innerHTML += `<div class="menu-card item-card"><div><strong style="font-size:18px;">${escapeHTML(i.name)}</strong><br><span style="color:#6b7280; font-size:14px;">${escapeHTML(i.desc)}</span><br><span style="color:#4f46e5; font-weight:bold; font-size:16px;">${escapeHTML(i.price)}</span></div>${i.photo ? `<img src="${escapeHTML(i.photo)}" class="item-photo">` : ''}</div>`;
     });
     navigationStack.push('page-items');
     showPage('page-items');
@@ -170,8 +203,9 @@ function showPage(p) {
     ['page-macro','page-categories','page-items'].forEach(id => document.getElementById(id).classList.add('hidden'));
     document.getElementById(p).classList.remove('hidden');
     const back = document.getElementById('back-button');
-    p === 'page-macro' ? back.classList.remove('active') : back.classList.add('active');
+    if (back) p === 'page-macro' ? back.classList.remove('active') : back.classList.add('active');
     updateLayout();
+    window.scrollTo({top: 0, behavior: 'instant'});
 }
 
 function goBack() { if(navigationStack.length > 1) { navigationStack.pop(); showPage(navigationStack[navigationStack.length-1]); } }
