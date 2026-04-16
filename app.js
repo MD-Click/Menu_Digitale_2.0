@@ -1,4 +1,4 @@
-const VERSION = "4.0-MODULO-BACKGROUND";
+const VERSION = "5.0-MODULO-MACRO";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -92,23 +92,45 @@ async function fetchConfig() {
             document.body.innerHTML = `<div style="padding:40px; text-align:center;"><h2 style="color:red;">🚨 Errore Google Sheets! 🚨</h2><p>Dati schiacciati in una sola cella. Usa 'Dividi testo in colonne'.</p></div>`;
             throw new Error("Dati CSV compressi");
         }
-        console.log("Config Caricato:", appConfig);
     } catch(e) { console.error(e); }
 }
 
 function applyConfig() {
     const root = document.documentElement;
 
+    // --- MODULO 5: MACRO SETTINGS ---
+    const layout = getVal('Macro_Layout', 'grid').toLowerCase();
+    root.style.setProperty('--macro-cols', layout === 'list' ? '1' : '2');
+    root.style.setProperty('--macro-height', getVal('Macro_Height', '180px'));
+
+    let mShadow = '0 4px 6px rgba(0,0,0,0.1)';
+    const mInt = getVal('Macro_Shadow_Intensity', 'medium').toLowerCase();
+    if(mInt === 'none') mShadow = 'none';
+    else if(mInt === 'light') mShadow = '0 2px 4px rgba(0,0,0,0.05)';
+    else if(mInt === 'strong') mShadow = '0 10px 15px rgba(0,0,0,0.2)';
+    root.style.setProperty('--macro-shadow', mShadow);
+
+    root.style.setProperty('--macro-text-color', parseColor(getVal('Macro_Text_Color', '#ffffff')));
+    root.style.setProperty('--macro-text-font', getVal('Macro_Text_Font', 'sans-serif'));
+    root.style.setProperty('--macro-text-weight', isTruthy(getVal('Macro_Text_Bold', 'TRUE')) ? 'bold' : 'normal');
+    
+    root.style.setProperty('--macro-text-shadow', isTruthy(getVal('Macro_Text_Shadow', 'TRUE')) ? '0px 2px 6px rgba(0,0,0,0.8)' : 'none');
+
+    const vPos = getVal('Macro_Text_VAlign', 'center').toLowerCase();
+    root.style.setProperty('--macro-align-v', vPos === 'top' ? 'flex-start' : (vPos === 'bottom' ? 'flex-end' : 'center'));
+
+    const hPos = getVal('Macro_Text_HAlign', 'center').toLowerCase();
+    root.style.setProperty('--macro-align-h', hPos === 'left' ? 'flex-start' : (hPos === 'right' ? 'flex-end' : 'center'));
+
     // --- MODULO 4: SFONDO (BACKGROUND) ---
     const bgType = getVal('App_Bg_Type', 'color').toLowerCase();
-    
     if (bgType === 'image') {
         const bgUrl = getVal('App_Bg_Image_URL', '');
         if (bgUrl) {
             root.style.setProperty('--app-bg-image', `url('${escapeHTML(bgUrl)}')`);
             root.style.setProperty('--app-bg-size', getVal('App_Bg_Image_Size', 'cover'));
             root.style.setProperty('--app-bg-position', getVal('App_Bg_Image_Position', 'center'));
-            root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb'))); // Sfondo di emergenza dietro l'immagine
+            root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb'))); 
         } else {
             root.style.setProperty('--app-bg-image', 'none');
             root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb')));
@@ -122,7 +144,6 @@ function applyConfig() {
     const isTransparent = isTruthy(getVal('Header_Transparent', 'FALSE'));
     const headerOpacity = isTransparent ? '0.5' : '1';
     root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), headerOpacity));
-    
     let shadow = 'none'; 
     const intensity = getVal('Header_Shadow_Intensity', 'medium').toLowerCase();
     if(intensity === 'light') shadow = '0 2px 8px rgba(0,0,0,0.05)';
@@ -134,11 +155,9 @@ function applyConfig() {
     const logoCont = document.getElementById('logo-container');
     const logoUrl = getVal('Logo_Image_URL', '');
     const align = getVal('Logo_Align', 'center').toLowerCase();
-    
     logoCont.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
     logoCont.style.marginTop = getVal('Logo_Margin_Top', '10px');
     logoCont.style.marginBottom = getVal('Logo_Margin_Bottom', '10px');
-    
     if (logoUrl) {
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no">`;
         document.getElementById('app-logo').onload = updateLayout;
@@ -150,7 +169,6 @@ function applyConfig() {
     // --- MODULO 3: SOTTOTITOLO ---
     const sub = document.getElementById('subtitle-container');
     const subText = getVal('Subtitle_Text', '');
-    
     if (subText !== '') {
         sub.style.display = 'block';
         sub.innerText = subText;
@@ -169,9 +187,7 @@ function updateLayout() {
     setTimeout(() => {
         const header = document.getElementById('main-header');
         const main = document.getElementById('main-content');
-        if (header && main) {
-            main.style.paddingTop = `calc(${header.offsetHeight}px + 20px)`;
-        }
+        if (header && main) main.style.paddingTop = `calc(${header.offsetHeight}px + 20px)`;
     }, 50);
 }
 
@@ -196,9 +212,19 @@ async function fetchMenu() {
 function renderLevel1() {
     const container = document.getElementById('macro-layout-container');
     const macros = [...new Set(fullData.map(i => i.macro))];
+    container.className = 'macro-container';
     container.innerHTML = '';
+    
     macros.forEach(m => {
-        container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card"><div class="macro-overlay"></div><span class="macro-text-inside">${escapeHTML(m)}</span></div>`;
+        // Cerca l'immagine specifica per la macro (sostituisce gli spazi con underscore)
+        const searchKey = 'Macro_Img_' + m.replace(/\s+/g, '_');
+        const imgUrl = getVal(searchKey, '');
+        const bgStyle = imgUrl ? `background-image: url('${escapeHTML(imgUrl)}');` : '';
+
+        container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card" style="${bgStyle}">
+            <div class="macro-overlay"></div>
+            <span class="macro-text-inside">${escapeHTML(m)}</span>
+        </div>`;
     });
     showPage('page-macro');
 }
