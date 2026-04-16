@@ -1,4 +1,4 @@
-const VERSION = "3.0-MODULO-SOTTOTITOLO";
+const VERSION = "4.0-MODULO-BACKGROUND";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -98,6 +98,25 @@ async function fetchConfig() {
 
 function applyConfig() {
     const root = document.documentElement;
+
+    // --- MODULO 4: SFONDO (BACKGROUND) ---
+    const bgType = getVal('App_Bg_Type', 'color').toLowerCase();
+    
+    if (bgType === 'image') {
+        const bgUrl = getVal('App_Bg_Image_URL', '');
+        if (bgUrl) {
+            root.style.setProperty('--app-bg-image', `url('${escapeHTML(bgUrl)}')`);
+            root.style.setProperty('--app-bg-size', getVal('App_Bg_Image_Size', 'cover'));
+            root.style.setProperty('--app-bg-position', getVal('App_Bg_Image_Position', 'center'));
+            root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb'))); // Sfondo di emergenza dietro l'immagine
+        } else {
+            root.style.setProperty('--app-bg-image', 'none');
+            root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb')));
+        }
+    } else {
+        root.style.setProperty('--app-bg-image', 'none');
+        root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb')));
+    }
 
     // --- MODULO 2: HEADER E COLORI ---
     const isTransparent = isTruthy(getVal('Header_Transparent', 'FALSE'));
