@@ -17,6 +17,7 @@
     --back-shadow: 0 4px 6px rgba(0,0,0,0.1);
     --subtitle-color: #6b7280;
     --subtitle-font: sans-serif;
+    --filter-margin: 12px; /* Nuova variabile di spaziatura */
 }
 
 body {
@@ -56,10 +57,14 @@ body {
     text-align: center; margin: 0; text-transform: uppercase; letter-spacing: 1px;
 }
 
-/* FILTRI E BADGES */
+/* FILTRI E BADGES - Aggiornati per Spaziatura Omogenea e Margine Dinamico */
 .filters-container {
-    display: flex; gap: 8px; margin-top: 10px; width: 100%;
-    justify-content: center; flex-wrap: wrap;
+    display: flex; 
+    gap: 12px; /* Spazio omogeneo tra i bottoni */
+    margin-top: var(--filter-margin); /* Distanza dal titolo controllata da Google Sheets */
+    width: 100%;
+    justify-content: center; /* Centratura matematica (1, 2 o 3 bottoni) */
+    flex-wrap: wrap;
 }
 .filter-btn {
     padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--subtitle-color);
@@ -67,13 +72,13 @@ body {
     font-size: 12px; cursor: pointer; transition: all 0.2s;
 }
 .filter-btn.active {
-    background: var(--subtitle-color); color: #fff;
+    background: var(--subtitle-color); color: #fff; border-color: var(--subtitle-color);
 }
 .badge-container { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
 .badge { padding: 3px 6px; border-radius: 6px; font-size: 10px; color: white; font-weight: bold; text-transform: uppercase; }
-.badge-gf { background: #eab308; } /* Giallo Oro per Senza Glutine */
-.badge-vegan { background: #22c55e; } /* Verde acceso per Vegano */
-.badge-veg { background: #84cc16; } /* Verde chiaro per Vegetariano */
+.badge-gf { background: #eab308; } 
+.badge-vegan { background: #22c55e; } 
+.badge-veg { background: #84cc16; } 
 
 #header-content-wrapper { width: 100%; transition: padding-left 0.3s ease; }
 #logo-container { width: 100%; display: flex; align-items: center; }
