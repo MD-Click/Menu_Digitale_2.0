@@ -29,8 +29,12 @@
 
     <main id="main-content">
         <div class="container">
-            <div id="macro-layout-container" class="macro-container hidden"></div>
+            <div id="page-macro" class="hidden">
+                <div id="macro-layout-container" class="macro-container"></div>
+            </div>
+            
             <div id="page-categories" class="hidden"></div>
+            
             <div id="page-items" class="hidden"></div>
         </div>
     </main>
@@ -45,12 +49,8 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then((registration) => {
-                        console.log('PWA Service Worker registrato con successo:', registration.scope);
-                    })
-                    .catch((error) => {
-                        console.log('Registrazione Service Worker fallita:', error);
-                    });
+                    .then((registration) => { console.log('PWA Service Worker registrato con successo.'); })
+                    .catch((error) => { console.log('Registrazione Service Worker fallita:', error); });
             });
         }
     </script>
