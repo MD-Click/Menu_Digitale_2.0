@@ -1,4 +1,4 @@
-const VERSION = "11.5.2-ULTIMATE-ROLLBACK";
+const VERSION = "11.5.3-BORDERS-ADDED";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -74,17 +74,16 @@ async function fetchConfig() {
     } catch(e) { console.error(e); }
 }
 
-// --- TRADUTTORE INTELLIGENTE (BLINDATO) ---
+// --- TRADUTTORE INTELLIGENTE ---
 function setupAutoTranslate() {
-    // 🆕 FIX: Default impostato a 'es'. Se scrivi male su Excel, almeno sa che è in Spagnolo.
     const sourceLang = getVal('Lang_Source', 'es').toLowerCase().trim(); 
     const targetLangsStr = getVal('Lang_Targets', 'ALL').toUpperCase().trim(); 
     
     let userLang = navigator.language || navigator.userLanguage;
     userLang = userLang.slice(0, 2).toLowerCase();
 
-    // Logica di blocco
     if (userLang === sourceLang) return; 
+
     if (targetLangsStr !== 'ALL') {
         const allowedLangs = targetLangsStr.toLowerCase().split(',').map(l => l.trim());
         if (!allowedLangs.includes(userLang)) return;
@@ -101,7 +100,6 @@ function setupAutoTranslate() {
     `;
     document.head.appendChild(antiBannerStyle);
 
-    // Forza i cookie per garantire la traduzione
     document.cookie = `googtrans=/${sourceLang}/${userLang}; path=/`;
     document.cookie = `googtrans=/${sourceLang}/${userLang}; domain=${window.location.hostname}; path=/`;
 
@@ -129,13 +127,42 @@ function setupAutoTranslate() {
 function applyConfig() {
     const root = document.documentElement;
 
+    // Sfondo App (FIX RAW GITHUB)
+    const bgType = getVal('App_Bg_Type', 'color').toLowerCase().trim();
+    const bgImgUrl = getVal('App_Bg_Image_URL', '');
+    if (bgType === 'image' && bgImgUrl !== '') {
+        root.style.setProperty('--app-bg-image', `url('${bgImgUrl}')`);
+        root.style.setProperty('--app-bg-size', getVal('App_Bg_Image_Size', 'cover'));
+        root.style.setProperty('--app-bg-position', getVal('App_Bg_Image_Position', 'center'));
+    } else {
+        root.style.setProperty('--app-bg-image', 'none');
+    }
+    root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb')));
+
     root.style.setProperty('--back-bg', parseColor(getVal('Back_Btn_Bg', '#111827')));
     root.style.setProperty('--back-color', parseColor(getVal('Back_Btn_Color', '#ffffff')));
     root.style.setProperty('--back-shadow', getVal('Back_Btn_Shadow_Intensity', 'none') !== 'none' ? '0 4px 6px rgba(0,0,0,0.1)' : 'none');
     
+    // Colori Filtri
+    const defaultFilterColor = getVal('Subtitle_Color', '#6b7280');
+    root.style.setProperty('--filter-bg', parseColor(getVal('Filter_Bg_Color', 'transparent')));
+    root.style.setProperty('--filter-text', parseColor(getVal('Filter_Text_Color', defaultFilterColor)));
+    root.style.setProperty('--filter-active-bg', parseColor(getVal('Filter_Active_Bg_Color', defaultFilterColor)));
+    root.style.setProperty('--filter-active-text', parseColor(getVal('Filter_Active_Text_Color', '#ffffff')));
+
+    // Bordi (NUOVO)
+    const mBorderEn = isTruthy(getVal('Macro_Border_Enable', 'FALSE'));
+    root.style.setProperty('--macro-border', mBorderEn ? `1px solid ${parseColor(getVal('Macro_Border_Color', '#e5e7eb'))}` : 'none');
+    const cBorderEn = isTruthy(getVal('Cat_Border_Enable', 'FALSE'));
+    root.style.setProperty('--cat-border', cBorderEn ? `1px solid ${parseColor(getVal('Cat_Border_Color', '#e5e7eb'))}` : 'none');
+    const iBorderEn = isTruthy(getVal('Item_Border_Enable', 'FALSE'));
+    root.style.setProperty('--item-border', iBorderEn ? `1px solid ${parseColor(getVal('Item_Border_Color', '#e5e7eb'))}` : 'none');
+
+    // Macro
     root.style.setProperty('--macro-cols', getVal('Macro_Layout', 'grid').toLowerCase() === 'list' ? '1' : '2');
     root.style.setProperty('--macro-height', getVal('Macro_Height', '180px'));
-    root.style.setProperty('--macro-shadow', getVal('Macro_Shadow_Intensity', 'medium') !== 'none' ? '0 4px 6px rgba(0,0,0,0.1)' : 'none');
+    const mInt = getVal('Macro_Shadow_Intensity', 'medium').toLowerCase();
+    root.style.setProperty('--macro-shadow', mInt === 'none' ? 'none' : (mInt === 'light' ? '0 2px 4px rgba(0,0,0,0.05)' : (mInt === 'strong' ? '0 10px 15px rgba(0,0,0,0.2)' : '0 4px 6px rgba(0,0,0,0.1)')));
     root.style.setProperty('--macro-text-color', parseColor(getVal('Macro_Text_Color', '#ffffff')));
     root.style.setProperty('--macro-text-font', getVal('Macro_Text_Font', 'sans-serif'));
     root.style.setProperty('--macro-text-weight', isTruthy(getVal('Macro_Text_Bold', 'TRUE')) ? 'bold' : 'normal');
@@ -143,6 +170,7 @@ function applyConfig() {
     root.style.setProperty('--macro-align-v', getVal('Macro_Text_VAlign', 'center').toLowerCase() === 'top' ? 'flex-start' : (getVal('Macro_Text_VAlign', 'center').toLowerCase() === 'bottom' ? 'flex-end' : 'center'));
     root.style.setProperty('--macro-align-h', getVal('Macro_Text_HAlign', 'center').toLowerCase() === 'left' ? 'flex-start' : (getVal('Macro_Text_HAlign', 'center').toLowerCase() === 'right' ? 'flex-end' : 'center'));
 
+    // Categorie
     root.style.setProperty('--cat-cols', getVal('Cat_Layout', 'list').toLowerCase() === 'grid' ? '2' : '1');
     root.style.setProperty('--cat-bg', parseColor(getVal('Cat_Bg_Color', '#ffffff')));
     root.style.setProperty('--cat-height', getVal('Cat_Height', '120px'));
@@ -153,18 +181,6 @@ function applyConfig() {
     root.style.setProperty('--cat-text-weight', isTruthy(getVal('Cat_Text_Bold', 'TRUE')) ? 'bold' : 'normal');
     root.style.setProperty('--cat-align-v', getVal('Cat_Text_VAlign', 'center').toLowerCase() === 'top' ? 'flex-start' : (getVal('Cat_Text_VAlign', 'center').toLowerCase() === 'bottom' ? 'flex-end' : 'center'));
     root.style.setProperty('--cat-align-h', getVal('Cat_Text_HAlign', 'left').toLowerCase() === 'center' ? 'center' : (getVal('Cat_Text_HAlign', 'left').toLowerCase() === 'right' ? 'flex-end' : 'flex-start'));
-
-    // 🆕 FIX SFONDO APP: Ora accetta link RAW da GitHub e Google Drive senza spezzarli
-    const bgType = getVal('App_Bg_Type', 'color').toLowerCase().trim();
-    const bgImgUrl = getVal('App_Bg_Image_URL', '');
-    if (bgType === 'image' && bgImgUrl !== '') {
-        root.style.setProperty('--app-bg-image', `url('${bgImgUrl}')`); // Niente escapeHTML qui
-        root.style.setProperty('--app-bg-size', getVal('App_Bg_Image_Size', 'cover'));
-        root.style.setProperty('--app-bg-position', getVal('App_Bg_Image_Position', 'center'));
-    } else {
-        root.style.setProperty('--app-bg-image', 'none');
-    }
-    root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb')));
 
     root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), isTruthy(getVal('Header_Transparent', 'FALSE')) ? '0.5' : '1'));
     root.style.setProperty('--header-shadow', getVal('Header_Shadow_Intensity', 'medium') !== 'none' ? '0 4px 15px rgba(0,0,0,0.08)' : 'none');
@@ -194,13 +210,6 @@ function applyConfig() {
     root.style.setProperty('--filter-margin', getVal('SubHeader_Filter_Margin', '12px'));
     const shTitle = document.getElementById('sub-header-title');
     if (shTitle) { shTitle.style.fontSize = getVal('SubHeader_Size', '16px'); shTitle.style.fontWeight = isTruthy(getVal('SubHeader_Bold', 'TRUE')) ? 'bold' : 'normal'; }
-
-    // 🆕 COLORI FILTRI CONFIGURABILI
-    const defaultFilterColor = getVal('Subtitle_Color', '#6b7280');
-    root.style.setProperty('--filter-bg', parseColor(getVal('Filter_Bg_Color', 'transparent')));
-    root.style.setProperty('--filter-text', parseColor(getVal('Filter_Text_Color', defaultFilterColor)));
-    root.style.setProperty('--filter-active-bg', parseColor(getVal('Filter_Active_Bg_Color', defaultFilterColor)));
-    root.style.setProperty('--filter-active-text', parseColor(getVal('Filter_Active_Text_Color', '#ffffff')));
 
     root.style.setProperty('--item-name-color', parseColor(getVal('Item_Name_Color', '#111827')));
     root.style.setProperty('--item-name-font', getVal('Item_Name_Font', 'sans-serif'));
@@ -251,7 +260,7 @@ async function fetchMenu() {
         for(let i=1; i<rows.length; i++){
             const c = safeParseCSVRow(rows[i]);
             if(c.length >= 3 && c[0]) {
-                // 🆕 LETTURA BIO IN COLONNA K (Indice 10)
+                // Bio letto da colonna K (indice 10)
                 fullData.push({ 
                     macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
                     gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], bio: c[10], active: c[11]||'TRUE', photo: c[12], ar: c[13] 
@@ -272,7 +281,8 @@ function renderLevel1() {
         const searchKey = 'Macro_Img_' + m.replace(/\s+/g, '_');
         const imgUrl = getVal(searchKey, '');
         const bgStyle = imgUrl ? `background-image: url('${escapeHTML(imgUrl)}');` : '';
-        container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside">${escapeHTML(m)}</span></div>`;
+        const noImageClass = imgUrl ? '' : 'no-image';
+        container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card ${noImageClass}" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside">${escapeHTML(m)}</span></div>`;
     });
     showPage('page-macro');
 }
@@ -321,7 +331,6 @@ function renderLevel3(m, c, isFiltering = false) {
         
         const isDrinks = m.toLowerCase().match(/bevand|bebid|drink/);
         
-        // 🆕 FILTRI AGGIORNATI PER DRINK (Analcolico, GF, Bio) e CIBO (GF, Vegano, Vegetariano, Bio)
         if (isDrinks) {
             if(allCategoryItems.some(i => isTruthy(i.noalc))) filtersHtml += `<button onclick="toggleFilter('noalc')" id="btn-noalc" class="filter-btn">Analcolico</button>`;
             if(allCategoryItems.some(i => isTruthy(i.gf))) filtersHtml += `<button onclick="toggleFilter('gf')" id="btn-gf" class="filter-btn">Senza Glutine</button>`;
@@ -365,7 +374,6 @@ function renderLevel3(m, c, isFiltering = false) {
                 </a>
             </div>` : '';
 
-        // NOMI PIATTI E PREZZI HANNO class="notranslate"
         container.innerHTML += `
         <div class="menu-card">
             <div class="item-card">
