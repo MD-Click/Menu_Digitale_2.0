@@ -3,8 +3,8 @@
 :root {
     --header-bg: rgba(255, 255, 255, 0.95); --header-shadow: 0 4px 15px rgba(0,0,0,0.08);
     --macro-cols: 2; --macro-height: 180px; 
-    --macro-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Variabile ombra Macro */
-    --macro-bg-color: #d1d5db; /* Variabile colore Macro fallback */
+    --macro-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+    --macro-bg-color: #d1d5db; 
     --macro-text-color: #ffffff; --macro-text-font: sans-serif; --macro-text-weight: bold;
     --macro-text-shadow: 0px 2px 4px rgba(0,0,0,0.8); --macro-align-v: center; --macro-align-h: center;
     --cat-cols: 1; --cat-bg: #ffffff; --cat-height: 120px; --cat-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -67,27 +67,20 @@ body {
 #main-content { padding-top: 100px; transition: padding-top 0.2s ease; }
 .container { max-width: 28rem; margin: 0 auto; padding: 0 1.25rem 2.5rem; }
 
-/* --- MACRO CARD AGGIORNATA --- */
 .macro-container { display: grid; grid-template-columns: repeat(var(--macro-cols), 1fr); gap: 1rem; }
 .macro-card { 
     height: var(--macro-height); border-radius: 1.25rem; 
     background-size: cover; background-position: center; 
     position: relative; overflow: hidden; display: flex; 
     align-items: var(--macro-align-v); justify-content: var(--macro-align-h); 
-    padding: 20px; 
-    background-color: var(--macro-bg-color); /* Colore dinamico */
-    cursor: pointer; 
-    box-shadow: var(--macro-shadow); /* Ombra dinamica */
-    transition: transform 0.2s; 
+    padding: 20px; background-color: var(--macro-bg-color); cursor: pointer; 
+    box-shadow: var(--macro-shadow); transition: transform 0.2s; 
 }
 .macro-card:active { transform: scale(0.98); }
 .macro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); z-index: 1; }
-/* Se non c'è immagine di sfondo, nascondiamo l'overlay nero per far vedere il colore puro */
 .macro-card.no-image .macro-overlay { display: none; }
-
 .macro-text-inside { color: var(--macro-text-color); font-family: var(--macro-text-font); font-weight: var(--macro-text-weight); text-shadow: var(--macro-text-shadow); text-align: var(--macro-align-h); z-index: 10; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
 
-/* CATEGORY CARD */
 .cat-container { display: grid; grid-template-columns: repeat(var(--cat-cols), 1fr); gap: 1rem; }
 .cat-card { background: var(--cat-bg); box-shadow: var(--cat-shadow); border-radius: 1.25rem; cursor: pointer; overflow: hidden; display: flex; height: var(--cat-height); transition: transform 0.2s; }
 .cat-card:active { transform: scale(0.98); }
@@ -102,11 +95,13 @@ body {
 .cat-img-grid { width: 100%; height: 100%; object-fit: cover; }
 
 /* ITEM CARD */
-.menu-card { background: var(--cat-bg); box-shadow: var(--cat-shadow); padding: 20px; border-radius: 24px; margin-bottom: 1rem; }
+.menu-card { background: var(--cat-bg); box-shadow: var(--cat-shadow); padding: 20px; border-radius: 24px; margin-bottom: 1rem; position: relative; }
+.clickable-card { cursor: pointer; transition: transform 0.2s; }
+.clickable-card:active { transform: scale(0.98); }
 .item-card { display: flex; justify-content: space-between; gap: 1rem; }
 .item-photo { width: 90px; height: 90px; border-radius: 12px; object-fit: cover; flex-shrink: 0; }
 
-.item-name { color: var(--item-name-color); font-family: var(--item-name-font); font-size: var(--item-name-size); font-weight: var(--item-name-weight); margin-bottom: 4px; line-height: 1.2; }
+.item-name { color: var(--item-name-color); font-family: var(--item-name-font); font-size: var(--item-name-size); font-weight: var(--item-name-weight); margin-bottom: 4px; line-height: 1.2; padding-right: 15px; }
 .item-desc { color: var(--item-desc-color); font-family: var(--item-desc-font); font-size: var(--item-desc-size); font-weight: var(--item-desc-weight); display: block; margin-bottom: 8px; line-height: 1.4; }
 .item-price { color: var(--item-price-color); font-family: var(--item-price-font); font-size: var(--item-price-size); font-weight: var(--item-price-weight); display: block; }
 
@@ -117,5 +112,14 @@ body {
 .badge-container { display: flex; gap: 4px; margin-top: 10px; flex-wrap: wrap; }
 .badge { padding: 3px 6px; border-radius: 6px; font-size: 10px; color: white; font-weight: bold; text-transform: uppercase; margin: 2px 0; }
 .badge-gf { background: #eab308; } .badge-vegan { background: #22c55e; } .badge-veg { background: #84cc16; } .badge-noalc { background: #3b82f6; }
+
+/* 🆕 STILI PAGINA DETTAGLIO PIATTO (Livello 4) */
+.details-page-card { background: var(--cat-bg); border-radius: 24px; overflow: hidden; padding-bottom: 20px; }
+.detail-photo { width: 100%; height: 280px; object-fit: cover; border-radius: 24px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.detail-title { color: var(--item-name-color); font-family: var(--item-name-font); font-size: 26px; font-weight: var(--item-name-weight); margin-bottom: 8px; line-height: 1.2; text-align: center; }
+.detail-price { color: var(--item-price-color); font-family: var(--item-price-font); font-size: 22px; font-weight: var(--item-price-weight); margin-bottom: 15px; text-align: center; }
+.detail-desc { color: var(--item-desc-color); font-family: var(--item-desc-font); font-size: 16px; font-weight: var(--item-desc-weight); margin-bottom: 20px; line-height: 1.5; text-align: center; padding: 0 10px; }
+.detail-long-text { color: #374151; font-family: var(--item-desc-font); font-size: 15px; line-height: 1.6; padding: 20px; background: #f9fafb; border-radius: 16px; margin-top: 10px; }
+.chevron-icon { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
 
 .hidden { display: none !important; }
