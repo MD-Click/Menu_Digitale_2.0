@@ -1,4 +1,4 @@
-const VERSION = "11.9-MASTER-DETAILS-CHEVRON-FIX";
+const VERSION = "11.9-MASTER-BG-FIX";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -121,7 +121,7 @@ function setupAutoTranslate() {
     setTimeout(() => clearInterval(killerInterval), 6000);
 }
 
-// --- CSS CONFIG ---
+// --- CSS CONFIG (FIX SFONDO) ---
 function applyConfig() {
     const root = document.documentElement;
 
@@ -153,11 +153,15 @@ function applyConfig() {
     root.style.setProperty('--cat-align-v', getVal('Cat_Text_VAlign', 'center').toLowerCase() === 'top' ? 'flex-start' : (getVal('Cat_Text_VAlign', 'center').toLowerCase() === 'bottom' ? 'flex-end' : 'center'));
     root.style.setProperty('--cat-align-h', getVal('Cat_Text_HAlign', 'left').toLowerCase() === 'center' ? 'center' : (getVal('Cat_Text_HAlign', 'left').toLowerCase() === 'right' ? 'flex-end' : 'flex-start'));
 
-    if (getVal('App_Bg_Type', 'color').toLowerCase() === 'image' && getVal('App_Bg_Image_URL', '')) {
-        root.style.setProperty('--app-bg-image', `url('${escapeHTML(getVal('App_Bg_Image_URL', ''))}')`);
+    // 🚨 CHIRURGIA: Rimossa la funzione escapeHTML per non rompere i link dell'immagine di sfondo
+    if (getVal('App_Bg_Type', 'color').trim().toLowerCase() === 'image' && getVal('App_Bg_Image_URL', '') !== '') {
+        root.style.setProperty('--app-bg-image', `url('${getVal('App_Bg_Image_URL', '')}')`);
         root.style.setProperty('--app-bg-size', getVal('App_Bg_Image_Size', 'cover'));
         root.style.setProperty('--app-bg-position', getVal('App_Bg_Image_Position', 'center'));
-    } else root.style.setProperty('--app-bg-image', 'none');
+    } else {
+        root.style.setProperty('--app-bg-image', 'none');
+    }
+    
     root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb')));
 
     root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), isTruthy(getVal('Header_Transparent', 'FALSE')) ? '0.5' : '1'));
@@ -168,7 +172,6 @@ function applyConfig() {
     const align = getVal('Logo_Align', 'center').toLowerCase();
     logoCont.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
     logoCont.style.marginTop = getVal('Logo_Margin_Top', '0px');
-    logoCont.style.marginBottom = '0px'; 
     if (logoUrl) {
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no" class="notranslate">`;
         document.getElementById('app-logo').onload = updateLayout;
@@ -204,7 +207,6 @@ function applyConfig() {
     root.style.setProperty('--ar-btn-bg', parseColor(getVal('Item_AR_Btn_Bg', '#111827')));
     root.style.setProperty('--ar-btn-color', parseColor(getVal('Item_AR_Btn_Color', '#ffffff')));
     
-    // 🆕 INIETTA IL PARAMETRO CHEVRON COLOR
     root.style.setProperty('--chevron-color', parseColor(getVal('Chevron_Color', '#9ca3af')));
 }
 
@@ -294,7 +296,6 @@ function toggleFilter(filterType) {
     renderLevel3(currentMacro, currentCat, true);
 }
 
-// LOGICA PIATTI 
 function renderLevel3(m, c, isFiltering = false) {
     currentMacro = m; currentCat = c;
     if (!isFiltering) activeFilters = []; 
@@ -337,7 +338,6 @@ function renderLevel3(m, c, isFiltering = false) {
         const cardClass = hasDetails ? 'menu-card clickable-card' : 'menu-card';
         const clickAction = hasDetails ? `onclick="openItemDetails(${i._id})"` : '';
         
-        // 🆕 La freccina ora vive dentro il badge container ed è flexboxata a destra
         const chevronHtml = hasDetails ? `<svg class="inline-chevron" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>` : '';
         
         let badgeHtml = '';
@@ -372,7 +372,6 @@ function renderLevel3(m, c, isFiltering = false) {
     }
 }
 
-// --- LIVELLO 4: DETTAGLIO PIATTO (ESATTO ALLA 11.9 ORIGINALE) ---
 function openItemDetails(id) {
     const item = fullData.find(x => x._id === id);
     if (!item) return;
@@ -390,7 +389,6 @@ function openItemDetails(id) {
 
     const formattedDetails = escapeHTML(item.details).replace(/\n/g, '<br>');
 
-    // Mantenuto l'ordine esatto della 11.9
     container.innerHTML = `
         <div class="details-page-card">
             ${item.photo ? `<img src="${escapeHTML(item.photo)}" class="detail-photo">` : ''}
@@ -413,7 +411,6 @@ function openItemDetails(id) {
     showPage('page-item-details');
 }
 
-// --- NAVIGAZIONE GLOBALE A 4 LIVELLI ---
 function showPage(p) {
     const pageIds = ['page-macro', 'page-categories', 'page-items', 'page-item-details'];
     
