@@ -1,4 +1,4 @@
-const VERSION = "11.6-PURE-3-LEVELS-WITH-DETAILS";
+const VERSION = "11.6.1-PIATTI-SPACING-FIX";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -150,7 +150,7 @@ function applyConfig() {
     root.style.setProperty('--filter-active-bg', parseColor(getVal('Filter_Active_Bg_Color', defaultFilterColor)));
     root.style.setProperty('--filter-active-text', parseColor(getVal('Filter_Active_Text_Color', '#ffffff')));
 
-    // Bordi Configurabili (Attivazione, Larghezza, Colore)
+    // Bordi Configurabili
     const mBorderEn = isTruthy(getVal('Macro_Border_Enable', 'FALSE'));
     const mBorderW = getVal('Macro_Border_Width', '1px');
     root.style.setProperty('--macro-border', mBorderEn ? `${mBorderW} solid ${parseColor(getVal('Macro_Border_Color', '#e5e7eb'))}` : 'none');
@@ -274,7 +274,7 @@ async function fetchMenu() {
         }
         fullData = fullData.filter(i => isTruthy(i.active));
         document.getElementById('loading-screen').classList.add('hidden');
-        renderLevel1(); // Avvia sempre dalle Macro
+        renderLevel1(); 
     } catch(e) { console.error(e); }
 }
 
@@ -381,8 +381,9 @@ function renderLevel3(m, c, isFiltering = false) {
             </div>`;
         }
 
+        // 🆕 FIX MARGINI: AR Button container settato a 8px invece di 15px
         const arHtml = i.ar ? `
-            <div style="width: 100%; display: flex; justify-content: center; margin-top: 15px;">
+            <div style="width: 100%; display: flex; justify-content: center; margin-top: 8px;">
                 <a href="${escapeHTML(i.ar)}" target="_blank" class="ar-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
@@ -430,6 +431,7 @@ function openItemDetails(id) {
     if(isTruthy(item.bio)) badges += `<span class="badge badge-bio">Bio</span>`; 
     const badgeHtml = badges ? `<div class="badge-container" style="justify-content:center; margin-bottom:15px;"><div class="badge-group">${badges}</div></div>` : '';
 
+    // Il bottone AR qui mantiene 20px per staccarsi dal testo
     const arHtml = item.ar ? `<div style="width: 100%; display: flex; justify-content: center; margin-top: 20px;"><a href="${escapeHTML(item.ar)}" target="_blank" class="ar-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Vedi Piatto in AR</a></div>` : '';
 
     const formattedDetails = escapeHTML(item.details).replace(/\n/g, '<br>');
@@ -457,7 +459,7 @@ function openItemDetails(id) {
 }
 
 function showPage(p) {
-    const pageIds = ['page-macro', 'page-categories', 'page-items', 'page-item-details']; // 🆕 Aggiunto Livello 4
+    const pageIds = ['page-macro', 'page-categories', 'page-items', 'page-item-details']; 
     
     pageIds.forEach(id => { 
         const el = document.getElementById(id); 
