@@ -1,4 +1,4 @@
-const VERSION = "11.3-BADGES-FULL-WIDTH";
+const VERSION = "12.0-INVISIBLE-TRANSLATOR";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -9,26 +9,6 @@ let navigationStack = ['page-macro'];
 let currentMacro = '';
 let currentCat = '';
 let activeFilters = [];
-
-// --- TRADUZIONE ---
-function setupAutoTranslate() {
-    const baseLang = 'it'; 
-    const userLang = (navigator.language || navigator.userLanguage).slice(0, 2).toLowerCase();
-    if (userLang !== baseLang) {
-        const style = document.createElement('style');
-        style.innerHTML = `.goog-te-banner-frame.skiptranslate { display: none !important; } body { top: 0px !important; } #goog-gt-tt { display: none !important; }`;
-        document.head.appendChild(style);
-        document.cookie = `googtrans=/${baseLang}/${userLang}; path=/`;
-        const widgetDiv = document.createElement('div');
-        widgetDiv.id = 'google_translate_element';
-        widgetDiv.style.display = 'none';
-        document.body.appendChild(widgetDiv);
-        window.googleTranslateElementInit = function() { new google.translate.TranslateElement({pageLanguage: baseLang, autoDisplay: false}, 'google_translate_element'); };
-        const script = document.createElement('script');
-        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-        document.body.appendChild(script);
-    }
-}
 
 // --- UTILITIES ---
 function cleanString(val) { return String(val || '').trim().replace(/^["']|["']$/g, '').replace(/,+$/, '').trim(); }
@@ -68,7 +48,6 @@ function parseColor(colorVal, opacityVal = 1) {
 
 // --- INIT ---
 async function init() {
-    setupAutoTranslate();
     if (!document.getElementById('sub-header')) {
         const sh = document.createElement('div');
         sh.id = 'sub-header';
@@ -77,7 +56,11 @@ async function init() {
     }
     if (!SHEET_ID) return;
     await fetchConfig(); 
-    applyConfig();       
+    applyConfig();  
+    
+    // Il traduttore ora parte DOPO aver letto le tue impostazioni
+    setupAutoTranslate();     
+    
     await fetchMenu();
 }
 
@@ -92,6 +75,65 @@ async function fetchConfig() {
             if(cols.length >= 2 && cols[0].toLowerCase() !== 'property') appConfig[cols[0]] = cols[1];
         });
     } catch(e) { console.error(e); }
+}
+
+// --- MODULO 12: TRADUZIONE INVISIBILE E INTELLIGENTE ---
+function setupAutoTranslate() {
+    // 1. Legge la lingua sorgente (default 'es' se non trovata)
+    const sourceLang = getVal('Lang_Source', 'es').toLowerCase();
+    
+    // 2. Legge le lingue permesse (default 'ALL')
+    const targetLangsStr = getVal('Lang_Targets', 'ALL').toUpperCase();
+    
+    // 3. Rileva la lingua del telefono dell'utente
+    const userLang = (navigator.language || navigator.userLanguage).slice(0, 2).toLowerCase();
+
+    // REGOLA A: Se il telefono è nella stessa lingua del menu, NON FARE NULLA.
+    if (userLang === sourceLang) {
+        console.log("Lingua utente coincide con menu. Nessuna traduzione necessaria.");
+        return;
+    }
+
+    // REGOLA B: Se hai limitato le lingue (es. 'en,de,fr') e quella dell'utente non c'è, NON FARE NULLA.
+    if (targetLangsStr !== 'ALL') {
+        const allowedLangs = targetLangsStr.toLowerCase().split(',').map(l => l.trim());
+        if (!allowedLangs.includes(userLang)) {
+            console.log("Lingua utente non nelle target permesse. Nessuna traduzione.");
+            return;
+        }
+    }
+
+    // Se passa i controlli, prepariamo lo scudo invisibile contro i banner di Google
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
+        body { top: 0px !important; position: static !important; }
+        #goog-gt-tt, .goog-tooltip { display: none !important; }
+        .goog-tooltip:hover { display: none !important; }
+        .goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
+    `;
+    document.head.appendChild(style);
+
+    // Forza il cookie di traduzione per renderla immediata
+    document.cookie = `googtrans=/${sourceLang}/${userLang}; path=/`;
+
+    // Inietta il widget nascosto
+    const widgetDiv = document.createElement('div');
+    widgetDiv.id = 'google_translate_element';
+    widgetDiv.style.display = 'none';
+    document.body.appendChild(widgetDiv);
+
+    window.googleTranslateElementInit = function() { 
+        new google.translate.TranslateElement({
+            pageLanguage: sourceLang, 
+            autoDisplay: false
+        }, 'google_translate_element'); 
+    };
+
+    const script = document.createElement('script');
+    script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    document.body.appendChild(script);
+    console.log(`Traduzione attivata: da ${sourceLang} a ${userLang}`);
 }
 
 function applyConfig() {
@@ -196,6 +238,7 @@ function updateLayout() {
     }, 50);
 }
 
+// --- RENDERING MENU ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -256,7 +299,6 @@ function toggleFilter(filterType) {
     renderLevel3(currentMacro, currentCat, true);
 }
 
-// LOGICA PIATTI (FIX BADGES FULL WIDTH)
 function renderLevel3(m, c, isFiltering = false) {
     currentMacro = m; currentCat = c;
     if (!isFiltering) activeFilters = []; 
@@ -301,7 +343,6 @@ function renderLevel3(m, c, isFiltering = false) {
         if(isTruthy(i.veg)) badges += `<span class="badge badge-veg">Vegetariano</span>`;
         if(isTruthy(i.noalc)) badges += `<span class="badge badge-noalc">Analcolico</span>`;
         
-        // I badge hanno ora il 100% della larghezza sotto la foto
         const badgeHtml = badges ? `<div class="badge-container">${badges}</div>` : '';
         
         const arHtml = i.ar ? `
@@ -315,7 +356,6 @@ function renderLevel3(m, c, isFiltering = false) {
                 </a>
             </div>` : '';
 
-        // STRUTTURA AGGIORNATA: I badge e l'AR sono fuori dall'impaginazione della foto!
         container.innerHTML += `
         <div class="menu-card">
             <div class="item-card">
