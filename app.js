@@ -1,4 +1,4 @@
-const VERSION = "11.5.3-BORDERS-ADDED";
+const VERSION = "11.5.4-BORDERS-THICKNESS";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -127,7 +127,7 @@ function setupAutoTranslate() {
 function applyConfig() {
     const root = document.documentElement;
 
-    // Sfondo App (FIX RAW GITHUB)
+    // Sfondo App (RAW GITHUB)
     const bgType = getVal('App_Bg_Type', 'color').toLowerCase().trim();
     const bgImgUrl = getVal('App_Bg_Image_URL', '');
     if (bgType === 'image' && bgImgUrl !== '') {
@@ -150,13 +150,18 @@ function applyConfig() {
     root.style.setProperty('--filter-active-bg', parseColor(getVal('Filter_Active_Bg_Color', defaultFilterColor)));
     root.style.setProperty('--filter-active-text', parseColor(getVal('Filter_Active_Text_Color', '#ffffff')));
 
-    // Bordi (NUOVO)
+    // 🆕 BORDI: Enable + Width + Color
     const mBorderEn = isTruthy(getVal('Macro_Border_Enable', 'FALSE'));
-    root.style.setProperty('--macro-border', mBorderEn ? `1px solid ${parseColor(getVal('Macro_Border_Color', '#e5e7eb'))}` : 'none');
+    const mBorderW = getVal('Macro_Border_Width', '1px');
+    root.style.setProperty('--macro-border', mBorderEn ? `${mBorderW} solid ${parseColor(getVal('Macro_Border_Color', '#e5e7eb'))}` : 'none');
+    
     const cBorderEn = isTruthy(getVal('Cat_Border_Enable', 'FALSE'));
-    root.style.setProperty('--cat-border', cBorderEn ? `1px solid ${parseColor(getVal('Cat_Border_Color', '#e5e7eb'))}` : 'none');
+    const cBorderW = getVal('Cat_Border_Width', '1px');
+    root.style.setProperty('--cat-border', cBorderEn ? `${cBorderW} solid ${parseColor(getVal('Cat_Border_Color', '#e5e7eb'))}` : 'none');
+    
     const iBorderEn = isTruthy(getVal('Item_Border_Enable', 'FALSE'));
-    root.style.setProperty('--item-border', iBorderEn ? `1px solid ${parseColor(getVal('Item_Border_Color', '#e5e7eb'))}` : 'none');
+    const iBorderW = getVal('Item_Border_Width', '1px');
+    root.style.setProperty('--item-border', iBorderEn ? `${iBorderW} solid ${parseColor(getVal('Item_Border_Color', '#e5e7eb'))}` : 'none');
 
     // Macro
     root.style.setProperty('--macro-cols', getVal('Macro_Layout', 'grid').toLowerCase() === 'list' ? '1' : '2');
@@ -260,7 +265,7 @@ async function fetchMenu() {
         for(let i=1; i<rows.length; i++){
             const c = safeParseCSVRow(rows[i]);
             if(c.length >= 3 && c[0]) {
-                // Bio letto da colonna K (indice 10)
+                // Bio in Colonna K (indice 10)
                 fullData.push({ 
                     macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
                     gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], bio: c[10], active: c[11]||'TRUE', photo: c[12], ar: c[13] 
