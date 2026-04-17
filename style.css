@@ -16,14 +16,6 @@
     --ar-btn-bg: #111827; --ar-btn-color: #ffffff;
 }
 
-/* 🚨 BLOCCO TRADUTTORE INVISIBILE 🚨 */
-iframe.goog-te-banner-frame, .goog-te-banner-frame { display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; border: none !important; }
-html { margin-top: 0px !important; height: 100% !important; }
-body { top: 0px !important; position: static !important; min-height: 100vh !important; }
-#goog-gt-tt, .goog-tooltip, .goog-tooltip:hover { display: none !important; visibility: hidden !important; }
-.goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
-#google_translate_element { display: none !important; height: 0 !important; }
-
 body {
     background-color: var(--app-bg-color, #f9fafb); background-image: var(--app-bg-image, none);
     background-size: var(--app-bg-size, cover); background-position: var(--app-bg-position, center);
@@ -31,17 +23,18 @@ body {
     min-height: 100vh; font-family: ui-sans-serif, system-ui, sans-serif; color: #111827;
 }
 
-/* HEADER E SUB-HEADER */
 #main-header {
     background: var(--header-bg); box-shadow: var(--header-shadow); position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
     display: flex; flex-direction: column; justify-content: center; padding: 10px 20px; min-height: 100px; height: auto;      
     transition: background 0.3s ease; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
 }
+
 #sub-header {
     position: fixed; left: 0; width: 100%; z-index: 998; display: none; flex-direction: column; align-items: center; justify-content: center;
     padding: 10px 20px; background: var(--header-bg); box-shadow: var(--header-shadow); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     transition: top 0.2s ease, opacity 0.3s ease;
 }
+
 #sub-header-title { color: var(--subtitle-color); font-family: var(--subtitle-font); text-align: center; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
 
 /* FILTRI */
@@ -49,10 +42,10 @@ body {
 .filter-btn { margin: 4px 6px; padding: 6px 14px; border-radius: 20px; border: 1.5px solid var(--subtitle-color); background: transparent; color: var(--subtitle-color); font-weight: bold; font-size: 12px; cursor: pointer; transition: all 0.2s; }
 .filter-btn.active { background: var(--subtitle-color); color: #fff; border-color: var(--subtitle-color); }
 
-/* COMPONENTI HEADER */
 #header-content-wrapper { width: 100%; transition: padding-left 0.3s ease; }
 #logo-container { width: 100%; display: flex; align-items: center; }
 #subtitle-container { width: 100%; display: none; line-height: 1.4; word-wrap: break-word; }
+
 #back-button {
     position: fixed; left: 8px; width: 34px; height: 34px; background: var(--back-bg); color: var(--back-color);
     display: none; align-items: center; justify-content: center; border-radius: 50%; border: none; box-shadow: var(--back-shadow);
@@ -61,7 +54,6 @@ body {
 #back-button.active { display: flex; }
 #back-button svg { width: 16px !important; height: 16px !important; } 
 
-/* CONTENUTO */
 #main-content { padding-top: 100px; transition: padding-top 0.2s ease; }
 .container { max-width: 28rem; margin: 0 auto; padding: 0 1.25rem 2.5rem; }
 
@@ -86,20 +78,23 @@ body {
 .layout-grid .cat-img-wrapper { width: 100%; height: 60%; }
 .cat-img-grid { width: 100%; height: 100%; object-fit: cover; }
 
-/* ITEM CARD & TIPOGRAFIA */
+/* ITEM CARD */
 .menu-card { background: var(--cat-bg); box-shadow: var(--cat-shadow); padding: 20px; border-radius: 24px; margin-bottom: 1rem; }
 .item-card { display: flex; justify-content: space-between; gap: 1rem; }
 .item-photo { width: 90px; height: 90px; border-radius: 12px; object-fit: cover; flex-shrink: 0; }
+
 .item-name { color: var(--item-name-color); font-family: var(--item-name-font); font-size: var(--item-name-size); font-weight: var(--item-name-weight); margin-bottom: 4px; line-height: 1.2; }
 .item-desc { color: var(--item-desc-color); font-family: var(--item-desc-font); font-size: var(--item-desc-size); font-weight: var(--item-desc-weight); display: block; margin-bottom: 8px; line-height: 1.4; }
 .item-price { color: var(--item-price-color); font-family: var(--item-price-font); font-size: var(--item-price-size); font-weight: var(--item-price-weight); display: block; }
 
-/* BOTTONE AR (Badge Style) Centrato e Distanziato */
+/* AR BUTTON - Forma Badge e Centrato in Basso */
 .ar-btn { 
-    display: inline-flex; align-items: center; gap: 4px; background: var(--ar-btn-bg); color: var(--ar-btn-color); 
-    padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold; text-transform: uppercase;
+    display: inline-flex; align-items: center; gap: 4px; 
+    background: var(--ar-btn-bg); color: var(--ar-btn-color); 
+    padding: 5px 12px; border-radius: 6px; 
+    text-decoration: none; font-size: 11px; 
+    font-weight: bold; text-transform: uppercase;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; 
-    margin-top: 15px; /* Spazio dal testo/prezzo */
 }
 .ar-btn:active { transform: scale(0.95); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .ar-btn svg { width: 14px; height: 14px; } 
@@ -109,21 +104,3 @@ body {
 .badge { padding: 3px 6px; border-radius: 6px; font-size: 10px; color: white; font-weight: bold; text-transform: uppercase; margin: 2px 0; }
 .badge-gf { background: #eab308; } .badge-vegan { background: #22c55e; } .badge-veg { background: #84cc16; } .badge-noalc { background: #3b82f6; }
 .hidden { display: none !important; }
-
-/* MODULO PWA INSTALL PROMPT Apple Style */
-#pwa-prompt {
-    position: fixed; bottom: -100%; left: 0; width: 100%; z-index: 10000;
-    display: flex; justify-content: center; padding: 20px;
-    transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-#pwa-prompt.visible { bottom: 0; }
-.pwa-box {
-    background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-    border-radius: 20px; padding: 24px; width: 100%; max-width: 400px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15); text-align: center; position: relative; border: 1px solid rgba(255,255,255,0.5);
-}
-.pwa-close { position: absolute; top: 12px; right: 16px; background: none; border: none; font-size: 24px; color: #9ca3af; cursor: pointer; padding: 5px; line-height: 1; }
-.pwa-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: #111827; }
-.pwa-desc { font-size: 14px; color: #4b5563; margin-bottom: 20px; line-height: 1.4; }
-.pwa-instruction { display: flex; align-items: center; justify-content: center; gap: 8px; background: #f3f4f6; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: bold; color: #1f2937; }
-.pwa-instruction svg { width: 22px; height: 22px; color: #007aff; }
