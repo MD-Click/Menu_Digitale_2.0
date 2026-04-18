@@ -149,7 +149,14 @@ body::before {
     align-items: var(--cat-align-v); 
     justify-content: var(--cat-align-h); 
 }
-
+.cat-text { 
+    color: var(--cat-text-color); 
+    font-family: var(--cat-text-font); 
+    font-weight: var(--cat-text-weight); 
+    font-size: var(--cat-text-size); /* <--- Ecco il tuo nuovo controllo! */
+    text-align: var(--cat-align-h);
+    text-transform: capitalize !important; 
+}
 .cat-img-wrapper { 
     flex-shrink: 0; 
     display: flex; 
