@@ -53,11 +53,8 @@ function getFilterLabels() {
         vegan: getVal('Filter_Name_Vegan', 'Vegano'),
         veg: getVal('Filter_Name_Veg', 'Vegetariano'),
         noalc: getVal('Filter_Name_NoAlc', 'Analcolico'),
-        bio: getVal('Filter_Name_Bio', 'Bio'),
-        special: getVal('Badge_Special_Text', 'Piatto del Giorno'),
-        discount: getVal('Badge_Discount_Text', 'Sconto del')
+        bio: getVal('Filter_Name_Bio', 'Bio')
     };
-}
 }
 
 // --- INIT ---
@@ -279,10 +276,9 @@ async function fetchMenu() {
             const c = safeParseCSVRow(rows[i]);
             if(c.length >= 3 && c[0]) {
                 fullData.push({ 
-            _id: i, macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
-            gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], bio: c[10], active: c[11]||'TRUE', photo: c[12], ar: c[13], details: c[14] || '',
-            discount: c[15] || '', special: c[16] || '' 
-        });
+                    _id: i, macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
+                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], bio: c[10], active: c[11]||'TRUE', photo: c[12], ar: c[13], details: c[14] || '' 
+                });
             }
         }
         fullData = fullData.filter(i => isTruthy(i.active));
@@ -415,9 +411,8 @@ function renderLevel3(m, c, isFiltering = false) {
     if (itemsToShow.length === 0) container.innerHTML = `<div style="text-align:center; padding: 20px; color:#9ca3af; font-weight:bold;">Nessun piatto trovato.</div>`;
 
     itemsToShow.forEach(i => {
-       let badges = '';
-        if(isTruthy(i.special)) badges += `<span class="badge badge-special notranslate">${escapeHTML(labels.special)}</span>`;
-        if(i.discount && i.discount.trim() !== '') badges += `<span class="badge badge-discount notranslate">${escapeHTML(labels.discount)} ${escapeHTML(i.discount)}%</span>`;
+        let badges = '';
+        // 🆕 Inietta i nomi presi dal Config nei Badge
         if(isTruthy(i.gf)) badges += `<span class="badge badge-gf">${escapeHTML(labels.gf)}</span>`;
         if(isTruthy(i.vegan)) badges += `<span class="badge badge-vegan">${escapeHTML(labels.vegan)}</span>`;
         if(isTruthy(i.veg)) badges += `<span class="badge badge-veg">${escapeHTML(labels.veg)}</span>`;
@@ -481,14 +476,11 @@ function openItemDetails(id) {
     const labels = getFilterLabels(); // 🆕 Carica i nomi personalizzati
     
     let badges = '';
-    if(isTruthy(item.special)) badges += `<span class="badge badge-special notranslate">${escapeHTML(labels.special)}</span>`;
-    if(item.discount && item.discount.trim() !== '') badges += `<span class="badge badge-discount notranslate">${escapeHTML(labels.discount)} ${escapeHTML(item.discount)}%</span>`;
     if(isTruthy(item.gf)) badges += `<span class="badge badge-gf">${escapeHTML(labels.gf)}</span>`;
     if(isTruthy(item.vegan)) badges += `<span class="badge badge-vegan">${escapeHTML(labels.vegan)}</span>`;
     if(isTruthy(item.veg)) badges += `<span class="badge badge-veg">${escapeHTML(labels.veg)}</span>`;
     if(isTruthy(item.noalc)) badges += `<span class="badge badge-noalc">${escapeHTML(labels.noalc)}</span>`;
-    if(isTruthy(item.bio)) badges += `<span class="badge badge-bio">${escapeHTML(labels.bio)}</span>`;
-    
+    if(isTruthy(item.bio)) badges += `<span class="badge badge-bio">${escapeHTML(labels.bio)}</span>`; 
     const badgeHtml = badges ? `<div class="badge-container" style="justify-content:center; margin-bottom:15px;"><div class="badge-group">${badges}</div></div>` : '';
 
     const arHtml = item.ar ? `<div style="width: 100%; display: flex; justify-content: center; margin-top: 20px;"><a href="${escapeHTML(item.ar)}" target="_blank" class="ar-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Vedi Piatto in AR</a></div>` : '';
