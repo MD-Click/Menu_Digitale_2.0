@@ -457,9 +457,11 @@ function renderLevel3(m, c, isFiltering = false) {
             </div>`;
         }
 
-        const arHtml = i.ar ? `
+       const arHtml = i.ar ? `
             <div style="width: 100%; display: flex; justify-content: center; margin-top: 8px;">
-                <a href="javascript:void(0);" onclick="launchDirectAR('${escapeHTML(i.ar)}')" class="ar-btn">
+                <a href="javascript:void(0);" 
+                   onclick="event.stopPropagation(); launchDirectAR('${escapeHTML(i.ar)}')" 
+                   class="ar-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                         <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
@@ -506,9 +508,11 @@ function openItemDetails(id) {
     if(isTruthy(item.bio)) badges += `<span class="badge badge-bio">${escapeHTML(labels.bio)}</span>`; 
     const badgeHtml = badges ? `<div class="badge-container" style="justify-content:center; margin-bottom:15px;"><div class="badge-group">${badges}</div></div>` : '';
 
-const arHtml = item.ar ? `
+  const arHtml = item.ar ? `
         <div style="width: 100%; display: flex; justify-content: center; margin-top: 20px;">
-            <a href="javascript:void(0);" onclick="launchDirectAR('${escapeHTML(item.ar)}')" class="ar-btn">
+            <a href="javascript:void(0);" 
+               onclick="event.stopPropagation(); launchDirectAR('${escapeHTML(item.ar)}')" 
+               class="ar-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
