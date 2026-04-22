@@ -160,6 +160,12 @@ function setupAutoTranslate() {
 
 function applyConfig() {
     const root = document.documentElement;
+    
+    // Controllo dinamico testo caricamento
+    const loadingText = document.getElementById('loading-text');
+    if (loadingText) {
+        loadingText.innerText = getVal('Testo_Caricamento', 'Caricamento...');
+    }
 
     const bgType = getVal('App_Bg_Type', 'color').toLowerCase().trim();
     const bgImgUrl = getVal('App_Bg_Image_URL', '');
@@ -466,7 +472,7 @@ function renderLevel3(m, c, isFiltering = false) {
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                         <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                         <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                    </svg> Vedi Piatto in AR
+                    </svg> ${escapeHTML(getVal('Testo_Bottone_AR', 'Vedi in AR'))}
                 </a>
             </div>` : '';
 
@@ -517,7 +523,7 @@ function openItemDetails(id) {
                     <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                     <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                </svg> Vedi Piatto in AR
+               </svg> ${escapeHTML(getVal('Testo_Bottone_AR', 'Vedi in AR'))}
             </a>
         </div>` : '';
     
@@ -615,9 +621,8 @@ function initInstallPopup() {
 
     const iosShareSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; vertical-align: bottom; margin: 0 4px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`;
 
-    let instructions = isiOS 
-        ? `Tocca l'icona ${iosShareSvg} in basso e seleziona <b>"Aggiungi a schermata Home"</b>.`
-        : `Aggiungi il menu alla tua schermata home per aprirlo velocemente come un'App.`;
+    // Testo unico per la descrizione preso da Excel
+    let instructions = getVal('Popup_Descrizione', 'Aggiungi il menu alla schermata home.');
 
     popup.innerHTML = `
         <img src="${iconPath}" class="pwa-icon-box">
