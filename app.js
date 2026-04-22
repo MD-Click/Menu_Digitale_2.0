@@ -624,7 +624,8 @@ function initInstallPopup() {
     // Testo unico per la descrizione preso da Excel
     // Prende il testo e trasforma in grassetto automatico tutto ciò che è tra virgolette
     let rawText = getVal('Popup_Descrizione', 'Aggiungi il menu alla schermata home.');
-    let instructions = rawText.replace(/"(.*?)"/g, '<b>"$1"</b>');
+   // Questo riconosce sia le virgolette dritte " che quelle curve “ ”
+    let instructions = rawText.replace(/["“”](.*?)["“”]/g, '<b>"$1"</b>');
 
     popup.innerHTML = `
         <img src="${iconPath}" class="pwa-icon-box">
