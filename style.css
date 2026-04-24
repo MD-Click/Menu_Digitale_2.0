@@ -109,7 +109,7 @@ body::before {
     color: var(--header-text, #666); /* Prende il colore dal config o grigio */
     
     /* Questa è la riga magica per la spaziatura */
-    letter-spacing: var(--app-subtitle-spacing, normal);
+    letter-spacing: var(--subtitle-spacing, normal);
     
     width: 100%; 
     display: block;
