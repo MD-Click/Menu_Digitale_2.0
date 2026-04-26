@@ -276,6 +276,11 @@ function applyConfig() {
     // Questa riga allinea correttamente anche il contenitore Flex!
     let flexAlign = pAlign === 'right' ? 'flex-end' : (pAlign === 'center' ? 'center' : 'flex-start');
     root.style.setProperty('--price-flex-align', flexAlign);
+
+    // --- CONTROLLO STILE ALLERGENI ---
+    root.style.setProperty('--allergens-size', getVal('Allergens_Size', '0.75rem'));
+    root.style.setProperty('--allergens-color', getVal('Allergens_Color', '#9ca3af'));
+    root.style.setProperty('--allergens-weight', getVal('Allergens_Weight', 'normal'));
     
     root.style.setProperty('--chevron-color', parseColor(getVal('Chevron_Color', '#9ca3af')));
     setTimeout(initInstallPopup, 1000);
@@ -501,6 +506,7 @@ function renderLevel3(m, c, isFiltering = false) {
                 <div style="flex-grow:1;">
                     <div class="item-name notranslate">${escapeHTML(i.name)}</div>
                     <div class="item-desc">${escapeHTML(i.desc)}</div>
+                    ${i.allerg ? `<div class="item-allergens">${escapeHTML(i.allerg)}</div>` : ''}
                     <div class="price-container">
                         <div class="item-price notranslate">${escapeHTML(i.price)}</div>
                         ${i.price2 ? `<div class="item-price-second notranslate">${escapeHTML(i.price2)}</div>` : ''}
@@ -562,6 +568,7 @@ function openItemDetails(id) {
                     ${item.price2 ? `<div class="item-price-second notranslate">${escapeHTML(item.price2)}</div>` : ''}
                 </div>
                 <div class="detail-desc">${escapeHTML(item.desc)}</div>
+                ${item.allerg ? `<div class="item-allergens" style="text-align: center;">${escapeHTML(item.allerg)}</div>` : ''}
                 
                 <div class="detail-long-text">${formattedDetails}</div>
                 
