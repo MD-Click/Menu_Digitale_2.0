@@ -292,3 +292,15 @@ body::before {
         object-fit: cover;
     }
 }
+
+/* --- STILE ALLERGENI --- */
+.item-allergens {
+    font-size: var(--allergens-size, 0.75rem);
+    color: var(--allergens-color, #9ca3af); /* Grigio elegante di default */
+    font-weight: var(--allergens-weight, normal);
+    margin-top: 4px;
+    margin-bottom: 8px; /* Spazio prima del prezzo */
+    font-style: italic; 
+    line-height: 1.3;
+    display: block;
+}
