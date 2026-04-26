@@ -271,12 +271,8 @@ function applyConfig() {
     root.style.setProperty('--ar-btn-bg', parseColor(getVal('Item_AR_Btn_Bg', '#111827')));
     root.style.setProperty('--ar-btn-color', parseColor(getVal('Item_AR_Btn_Color', '#ffffff')));
 
-    // --- CONTROLLO POSIZIONE PREZZO ---
+   // --- CONTROLLO POSIZIONE PREZZO ---
     let pAlign = getVal('Price_Align', 'left').toLowerCase();
-    // Traduce left/center/right per il flexbox
-    let flexAlign = pAlign === 'right' ? 'flex-end' : (pAlign === 'center' ? 'center' : 'flex-start');
-    
-    root.style.setProperty('--price-flex-align', flexAlign);
     root.style.setProperty('--price-text-align', pAlign);
     
     root.style.setProperty('--chevron-color', parseColor(getVal('Chevron_Color', '#9ca3af')));
